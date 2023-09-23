@@ -1,0 +1,10 @@
+.\mlc.exe --idle_latency -c0 -e -r -b32			# Tries to target L1-D cache
+
+.\mlc.exe --idle_latency -c0 -e -r -b256		# Tries to target L2 cache
+
+.\mlc.exe --idle_latency -c0 -e -r -b6m			# Tries to target L3 cache
+
+.\mlc.exe --idle_latency -c0 -e -r -b12m		# Tries to target L3 and RAM. Has equal odds of causing cache miss and cache hit in L3.
+
+.\mlc.exe --idle_latency -c0 -e -r -b200		# Predominantly targets RAM.
+
