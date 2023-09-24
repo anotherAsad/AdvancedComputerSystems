@@ -22,28 +22,28 @@ where,
 
  $Lq = \(µ^2\)/\(1-µ\)$
 
- $Tq = Lq.Ts + µ.Ts$
+ $Tq = Lq.Τ_server + µ.Τ_server$
 
- Tq = (µ^2)/(1-µ)*Ts + µ*Ts
+ $Tq = \(µ^2\)/\(1-µ\).Τ_server + µ.Τ_server$
 
- Tq = Ts*(µ^2 + µ(1-µ))/(1-µ)
+ $Tq = Τ_server.\(µ^2 + µ.\(1-µ\)\)/\(1-µ\)$
 
- Tq = Ts*(µ/(1-µ))
+ $Tq = Τ_server*\(µ/\(1-µ\)\)$
 
- Latency = Tq+Ts = Ts*(µ/(1-µ)) + Ts
+ Latency = Tq+Τ_server = Τ_server*(µ/(1-µ)) + Τ_server
 
- We know $Ts$ to be the server latency, it is the latency when queue-length is 0. We calculated it in part 1. It was around 62 ns.
+ We know $Τ_server$ to be the server latency, it is the latency when queue-length is 0. We calculated it in part 1. It was around 62 ns.
 
 
  *We know that,
 
- µ = λ.Ts
+ µ = λ.Τ_server
 
  λ = Arrival Rate = Departure Rate = Throughput
 
- Ts = Avg. Service Time or Server Latency
+ Τ_server = Avg. Service Time or Server Latency
 
- 1/Ts = B = Average Service Rate (when µ = 1); we know this from part 2 when we extracted max bandwidth
+ 1/Τ_server = B = Average Service Rate (when µ = 1); we know this from part 2 when we extracted max bandwidth
 
  So,
 
