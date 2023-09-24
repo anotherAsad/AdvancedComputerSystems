@@ -22,7 +22,7 @@ where,
 
  $Lq = \(µ^2\)/\(1-µ\)$
 
- $Tq = Lq*Ts + µ*Ts$
+ $Tq = Lq.Ts + µ.Ts$
 
  Tq = (µ^2)/(1-µ)*Ts + µ*Ts
 
