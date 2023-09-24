@@ -2,7 +2,7 @@ The objective of project 1 is to gain deeper understanding on cache and memory h
 
 For parts 1 to 3, I use the Intel's MLC tool.
 
-For parts 4 and 5, I have written codes which are qualified using Linux's perf command.
+For parts 4 and 5, I have written C codes which are qualified using Linux's perf command.
 
 In order to accurately comment on the quantifiable parameters of memory system on a computer, one must know the cache/memory hierarchy of the computer.
 The memory hierarchy of my laptop are as follow:
