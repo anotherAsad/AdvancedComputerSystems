@@ -8,7 +8,7 @@ Unfortunately, the MLC tool does not allow changing access granularities. It onl
 
 2) Stride length (-l). This actually defines the address increment after every transaction. Default value is 64 B. Although this does not change the access granularity (amount of data per access), it changes the address granularity.
 
-In our tests, we are changing the stride lengths nevertheless.
+In our tests, we are changing the stride lengths nevertheless. Our buffer size is 100 megabytes per core.
 
 The general format of the command is:
 
@@ -19,5 +19,9 @@ The graphs of results are shown below
 ![plot](./max_bandwidth_graphs.PNG)
 
 We can surmise that maximum bandwidth decreases with increase in stride size. It also decreases with decrease in read-to-write ratio.
+
+Increase in stride size will increase read/write amplification, because the entire page will not be read. Moreover, since the page will change more often, the total Row Access Latency will increase, limiting our bandwidth.
+
+Decrease in read-to-write ratio marginally decreases max bandwidth. This is because a write is essentially a read, but with minor row-buffer change overhead in RAM.
 
 
