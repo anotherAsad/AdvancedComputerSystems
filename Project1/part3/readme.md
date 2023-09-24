@@ -34,7 +34,9 @@ where,
 
  We know $Τ_s$ to be the server latency, it is the latency when queue-length is 0. We calculated it in part 1. It was around 62 ns.
 
+ It can be seen from the graph that the experimental results largely follow the predicitons of queuing theory.
 
+ # Derivation of Max Bandwidth in Terms of $T_s$
  *We know that,
 
  $µ = λ.Τ_s$
