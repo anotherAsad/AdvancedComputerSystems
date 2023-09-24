@@ -20,31 +20,31 @@ where,
 
  The graph describes latency as a function of normalized-throughput. We also plotted the theoretical latency along with measured latency. The theoretical latency can be calculated as follows from queuing theory:
 
- $Lq = \(µ^2\)/(1-µ)$
+ $L_q = \(µ^2\)/\(1-µ\)$
 
- $Tq = Lq.Τ_s + µ.Τ_s$
+ $T_q = L_q.Τ_s + µ.Τ_s$
 
- $Tq = \(µ^2\)/\(1-µ\).Τ_s + µ.Τ_s$
+ $T_q = \(µ^2\)/\(1-µ\).Τ_s + µ.Τ_s$
 
- $Tq = Τ_s.\(µ^2 + µ.\(1-µ\)\)/\(1-µ\)$
+ $T_q = Τ_s.\(µ^2 + µ.\(1-µ\)\)/\(1-µ\)$
 
- $Tq = Τ_s*\(µ/\(1-µ\)\)$
+ $T_q = Τ_s.\(µ/\(1-µ\)\)$
 
- Latency = Tq+Τ_s = Τ_s*(µ/(1-µ)) + Τ_s
+ $Latency = T_q+Τ_s = Τ_s.\(µ/\(1-µ\)\) + Τ_s$
 
  We know $Τ_s$ to be the server latency, it is the latency when queue-length is 0. We calculated it in part 1. It was around 62 ns.
 
 
  *We know that,
 
- µ = λ.Τ_s
+ $µ = λ.Τ_s$
 
- λ = Arrival Rate = Departure Rate = Throughput
+ $λ = Arrival Rate = Departure Rate = Throughput$
 
- Τ_s = Avg. Service Time or Server Latency
+ $Τ_s = Avg Service Time = Server Latency$
 
- 1/Τ_s = B = Average Service Rate (when µ = 1); we know this from part 2 when we extracted max bandwidth
+ $1/Τ_s = B = Avg Service Rate \(when µ = 1\)$; we know this from part 2 when we extracted max bandwidth
 
  So,
 
- µ = λ/B = Throughput/Max Bandwidth = Server Utilization = Fraction of bandwidth consumed
+ $µ = λ/B =$ Throughput/Max Bandwidth $=$ Server Utilization $=$ Fraction of bandwidth consumed
