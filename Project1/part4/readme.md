@@ -14,16 +14,16 @@ The program takes command line arguments for buffer sizes. Buffer sizes of 32KB,
 
 The results are shown in figures below. The program prints the time taken for execution. Higher execution time for higher buffer sizes corresponds to greater cache miss ratio, because cache misses incur a cost of latency in accessing the lower levels and updating the cache contents. Moreover, the `perf` command reports the **unified L3 cache miss rate**, and the **L1-D cache miss rate** as well.
 
-![drawing](./L1_fin.png =100x20)
+<img src="./L1_fin.png" width="200" height="200" />
 Results for a buffer size of 32 KB. Targets L1-D cache primarily. In this case, the metric of concern is `L1-dcache-load-misses` at `perf` output.
 
-![drawing](./L2_fin.png =100x20)
+<img src="./L3_fin.png" width="200" height="200" />
 Results for a buffer size of 256 KB. Targets L2 cache primarily.
 
-![drawing](./L3_fin.png =100x20)
+<img src="./L3_fin.png" width="200" height="200" />
 Results for a buffer size of 6 MB. Targets L3 cache primarily. Note the increase in execution time.
 
-![drawing](./RAM_fin.png =100x20)
+<img src="./RAM_fin.png" width="200" height="200" />
 
 Results for a buffer size of 128 MB. Targets the off-chip RAM primarily. The execution time increases very significantly because the cost of off-chip access is quite high.
 
