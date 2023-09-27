@@ -15,11 +15,12 @@ We use the `dTLB-loads` and `dTLB-load-misses` stats from the `perf` command for
 
 <h2>Results</h2>
 
-_Results for the **Intra-page access** case. There are only 21 level-1 TLB load misses for the whole execution, which accounts for almost 0% of the total._
-<img src="intra_fin.png" width="900" height="600"/>
+*Results for the **Intra-page access** case. There are only 21 level-1 TLB load misses for the whole execution, which accounts for almost 0% of the total:*
+<img src="intra_fin.png" width="800" height="600"/>
 
 _Results for the **Inter-page access** case. Even in this case, the TLB misses are quite low at around 1%. But the execution time is 50x higher thant the **Intra-page access** case._
-<img src="inter_fin.png" width="900" height="600"/>
-<br><br>
+<img src="inter_fin.png" width="800" height="600"/>
+
+<br>
 In conclusion TLB misses incur a cost in terms of latency, very much like cache misses.
 
