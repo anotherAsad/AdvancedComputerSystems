@@ -16,16 +16,16 @@ The results are shown in figures below. The program prints the time taken for ex
 <br>
 
 _Results for a buffer size of 32 KB. Targets L1-D cache primarily. In this case, the metric of concern is `L1-dcache-load-misses` at `perf` output_:
-<img src="./L1_fin.png" width="1280" height="720" />
+<img src="./L1_fin.png" width="800" height="450" />
 
 _Results for a buffer size of 256 KB. Targets L2 cache primarily_:
-<img src="./L3_fin.png" width="1280" height="720" />
+<img src="./L3_fin.png" width="800" height="450" />
 
 _Results for a buffer size of 6 MB. Targets L3 cache primarily. Note the increase in execution time_:
-<img src="./L3_fin.png" width="1280" height="720" />
+<img src="./L3_fin.png" width="800" height="450" />
 
 _Results for a buffer size of 128 MB. Targets the off-chip RAM primarily. The execution time increases very significantly because the cost of off-chip access is quite high_:
-<img src="./RAM_fin.png" width="1280" height="720" />
+<img src="./RAM_fin.png" width="800" height="450" />
 
 The number of operations performed on these buffers of different sizes are exactly same, and are around 536 Million. We ensure this because we don't want any cache miss statistics reported that depend on factors other than memory heirarchy. One can observe this in the screenshots, as the number of instructions executed in all the cases is almost equal, but execution times are vastly different.
 
