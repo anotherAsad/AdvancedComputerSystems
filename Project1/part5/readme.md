@@ -1,5 +1,5 @@
 <h1>Part 5</h1>
-In part 5, we were supposed to see the impact of misses in the Translation Lookaside Buffer. The TLB is usually a fully assosiative cache like structure inside the CPU used for quick virtual to physical address translation. A TLB miss usually results in a relatively expensive page walk. There can be a multi-level cache-like hierarchy for the TLB inside the processor as well.
+In part 5, we were supposed to see the impact of misses in the Translation Lookaside Buffer. The TLB is usually a high-assosiativity cache like structure inside the CPU used for quick virtual to physical address translation. A TLB miss usually results in a relatively expensive page walk. There can be a multi-level cache-like hierarchy for the TLB inside the processor as well.
 
 For this part, we use the Linux's `mmap` system call to allocate pages to us. This way, we are sure that the memory allocated to our program always begins at a fresh page.
 
@@ -14,7 +14,12 @@ Again, for the sake of a just comparison, the total number of arithmatic operati
 We use the `dTLB-loads` and `dTLB-load-misses` stats from the `perf` command for our results, and time the execution as well.
 
 <h2>Results</h2>
-<img src="inter_fin.png" width="800" height="600"/>
 
-<img src="intra_fin.png" width="800" height="600"/>
+_Results for the **Intra-page access** case. There are only 21 level-1 TLB load misses for the whole execution, which accounts for almost 0% of the total._
+<img src="intra_fin.png" width="900" height="600"/>
+
+_Results for the **Inter-page access** case. Even in this case, the TLB misses are quite low at around 1%. But the execution time is 50x higher thant the **Intra-page access** case._
+<img src="inter_fin.png" width="900" height="600"/>
+<br><br>
+In conclusion TLB misses incur a cost in terms of latency, very much like cache misses.
 
