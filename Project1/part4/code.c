@@ -24,7 +24,7 @@
 #define L1_SIZE			(0x00008000)			// 32K in decimal.
 #define L2_SIZE			(0x00040000)			// 256K in decimal.
 #define L3_SIZE			(0x00600000)			// 6291456 in decimal. Equals 6 MB.
-#define MEM_BUF_SIZE	(0x08000000)			// Equals 128 MB
+#define MEM_BUF_SIZE	(0x08000000)			//   128 MB
 
 unsigned char *mappedMem;						// Pointer to mapped memory
 
