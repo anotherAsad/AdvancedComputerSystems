@@ -24,7 +24,7 @@ _Results for a buffer size of 256 KB. Targets L2 cache primarily_:
 _Results for a buffer size of 6 MB. Targets L3 cache primarily. Note the increase in execution time_:
 <img src="./L3_fin.png" width="800" height="600" />
 
-_Results for a buffer size of 128 MB. Targets the off-chip RAM primarily. The execution time increases very significantly because the cost of off-chip access is quite high_:
+*Results for a buffer size of 128 MB. Targets the off-chip RAM primarily. The execution time increases significantly as off-chip accesses cause huge latencies*:
 <img src="./RAM_fin.png" width="800" height="600" />
 
 The number of operations performed on these buffers of different sizes are exactly same, and are around 536 Million. We ensure this because we don't want any cache miss statistics reported that depend on factors other than memory heirarchy. One can observe this in the screenshots, as the number of instructions executed in all the cases is almost equal, but execution times are vastly different.
