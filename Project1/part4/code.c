@@ -14,7 +14,7 @@
 #define ANSI_COLOR_BLUE    "\x1b[34m"
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_BLACK    "\x1b[30m"
+#define ANSI_COLOR_BLACK   "\x1b[30m"
 #define ANSI_BGCLR_BLUE    "\x1b[104m"
 #define ANSI_BGCLR_GREEN   "\x1b[42m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
