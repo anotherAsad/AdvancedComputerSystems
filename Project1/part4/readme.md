@@ -37,5 +37,3 @@ The number of operations performed on these buffers of different sizes are exact
 
 *This graph below shows the relationship between cache-miss rate and execution time. The miss rate is positively correlated with execution time, with the likely cause of increased memory access latency and cache-line update.*
 ![graph](./miss_rate_vs_exec_time.PNG)
-
-img[alt=drawing] { width: 200px; }
