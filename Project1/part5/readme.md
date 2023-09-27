@@ -16,5 +16,5 @@ We use the `dTLB-loads` and `dTLB-load-misses` stats from the `perf` command for
 <h2>Results</h2>
 <img src="inter_fin.png" width="800" height="600"/>
 
-<img src="inter_fin.png" width="800" height="600"/>
+<img src="intra_fin.png" width="800" height="600"/>
 
