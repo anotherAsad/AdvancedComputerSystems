@@ -13,19 +13,19 @@ The program takes command line arguments for buffer sizes. Buffer sizes of 32KB,
 <h2>Results</h2>
 
 The results are shown in figures below. The program prints the time taken for execution. Higher execution time for higher buffer sizes corresponds to greater cache miss ratio, because cache misses incur a cost of latency in accessing the lower levels and updating the cache contents. Moreover, the `perf` command reports the **unified L3 cache miss rate**, and the **L1-D cache miss rate** as well.
+<br>
 
+Results for a buffer size of 32 KB. Targets L1-D cache primarily. In this case, the metric of concern is `L1-dcache-load-misses` at `perf` output:
 <img src="./L1_fin.png" width="1280" height="720" />
-Results for a buffer size of 32 KB. Targets L1-D cache primarily. In this case, the metric of concern is `L1-dcache-load-misses` at `perf` output.
 
+Results for a buffer size of 256 KB. Targets L2 cache primarily:
 <img src="./L3_fin.png" width="1280" height="720" />
-Results for a buffer size of 256 KB. Targets L2 cache primarily.
 
+Results for a buffer size of 6 MB. Targets L3 cache primarily. Note the increase in execution time:
 <img src="./L3_fin.png" width="1280" height="720" />
-Results for a buffer size of 6 MB. Targets L3 cache primarily. Note the increase in execution time.
 
+Results for a buffer size of 128 MB. Targets the off-chip RAM primarily. The execution time increases very significantly because the cost of off-chip access is quite high:
 <img src="./RAM_fin.png" width="1280" height="720" />
-
-Results for a buffer size of 128 MB. Targets the off-chip RAM primarily. The execution time increases very significantly because the cost of off-chip access is quite high.
 
 The number of operations performed on these buffers of different sizes are exactly same, and are around 536 Million. We ensure this because we don't want any cache miss statistics reported that depend on factors other than memory heirarchy. One can observe this in the screenshots, as the number of instructions executed in all the cases is almost equal, but execution times are vastly different.
 
