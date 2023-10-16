@@ -20,16 +20,14 @@ _Results for a buffer size of 32 KB. Targets L1-D cache primarily. In this case,
 
 ![graph](./short_table.PNG)
 
-<img src="./short_table.PNG" width="800" height="500" />
-
 _Results for a buffer size of 256 KB. Targets L2 cache primarily_:
-<img src="./short_results.png" width="800" height="500" />
+![graph](./short_results.png)
 
 _Results for a buffer size of 6 MB. Targets L3 cache primarily. Note the increase in execution time_:
-<img src="./float_table.PNG" width="800" height="500" />
+![graph](./float_table.PNG)
 
 _Results for a buffer size of 128 MB. Targets the off-chip RAM. The execution time increases significantly as off-chip accesses incur huge latencies_:
-<img src="./float_results.png" width="800" height="500" />
+![graph](./float_results.png)
 
 The number of operations performed on these buffers of different sizes are exactly same, and are around 536 Million. We ensure this because we don't want any cache miss statistics reported that depend on factors other than memory heirarchy. One can observe this in the screenshots, as the number of instructions executed in all the cases is almost equal, but execution times are vastly different.
 
