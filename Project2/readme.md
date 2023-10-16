@@ -19,13 +19,11 @@ The compiled results for various matrix sizes and optimization techniques are gi
 
 <h3>Results for 2-Byte fixed-point data-type matrices<h3>
 
-_Table of execution time of various optimization texhniques under different matrix sizes_
+_Table of execution time of various optimization texhniques under different matrix sizes_:
 ![graph](./short_table.PNG)
 
 _Comparison of execution time in seconds for various optimization techniques_:
 ![graph](./short_results.png)
-
-**_Analysis_**
 
 We can surmise from the above table and graph that the optimization techniques have the intended effect of accelerating the matrix-matrix product. However, some more salient comparisons are as follows:
 
@@ -44,13 +42,12 @@ For instance, for a matrix-matrix product of 3000x3000, the naive implementation
 
 <h3>Results for 4-Byte floating-point data-type matrices<h3>
 
-_Table of execution time of various optimization texhniques under different matrix sizes_
+_Table of execution time of various optimization texhniques under different matrix sizes_:
 ![graph](./float_table.PNG)
 
 _Comparison of execution time in seconds for various optimization techniques_:
 ![graph](./float_results.png)
 
-**_Analysis_**
 From the above results we can see that
 
 - All the observations for 2-byte integer case also hold for the 4-byte floating point case.
