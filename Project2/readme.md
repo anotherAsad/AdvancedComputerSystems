@@ -34,7 +34,7 @@ We can surmise from the above table and graph that the optimization techniques h
 - If, through judicious re-arrangement (storing Matrix 2 column wise) and/or smart access pattern (tiling), we increase the actual data-access bandwidth for CPU, we starkly begin to see the advantages of using **SIMD**.
 For instance, for a matrix-matrix product of 3000x3000, the naive implementation and the SIMD-only implementation both almost take 170 seconds. However, once we represent the matrix 2 column-wise in the memory, using **SIMD** slashes down the execution time for 60 seconds to 18 seconds, i.e. **30%** of the original. This means, that once we use the row-major representation (or tiling), our application becomes **compute-bound**.
 
-- Using **Tiling** if the Matrix 2 is already transposed does not have much benefit, since locality exploitation is already almost perfect.
+- If the Matrix 2 is already transposed, **tiling** does not have much benefit, since locality exploitation is already almost perfect.
 
 - 4 threads were used when using multi-threading. However, the perfect theoretical speedup of **4x** was not seen. The observed speedup is around **2.3x** in almost all cases. Due to the highly parallelizable nature of matrix-matrix multiplication, and almost no concern for atomicity in the implemented algorithm, this result does not concur with the **Amdahl's Law** of parallelization. The only reason seems to be memory-access contention: different cores could be evicting cache-enteries being used by each other, resulting in the application becoming more memory-bound.
 
