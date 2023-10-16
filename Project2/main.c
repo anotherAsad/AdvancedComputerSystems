@@ -165,7 +165,27 @@ int ExecutionIterator(int ROW_COUNT, int COL_COUNT) {
 }
 
 int main() {
-	ExecutionIterator(1000, 1000);
+	double time_elapsed = 0.0;
+
+	int ROW_COUNT = 1024;
+	int COL_COUNT = 1024;
+
+	mat1info.num_rows = 16*(ROW_COUNT/16);
+	mat1info.num_cols = 16*(COL_COUNT/16);
+	// #rows_mat2 == #cols_mat1
+	mat2info.num_rows = 16*(COL_COUNT/16);
+	mat2info.num_cols = 16*(ROW_COUNT/16);
+
+	exec_mode.type = SHORT;
+	exec_mode.RowMajorMat2 = 1;
+	exec_mode.avx = ENABLED;
+	exec_mode.num_cores = 1;
+	exec_mode.tile_hlen = mat1info.num_cols;
+	exec_mode.tile_vlen = mat1info.num_rows;
+
+	time_elapsed = TimedExecution();
+
+	return 0;
 }
 
 //////////////////////////////////////////////// LEGACY FUNCTIONS ////////////////////////////////////////////////
