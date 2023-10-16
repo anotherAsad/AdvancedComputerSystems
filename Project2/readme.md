@@ -35,6 +35,36 @@ The program is compiled using the following command:
 
 keywords: `Column Wise Matrix Storage`, `Matrix Tiling`, `Multi Threading`, `linearized 2-D array storage`, `SIMD`, `atomicity`
 
+Following are the optimizations used to accelerate matrix-matrix product.
+
+1. **Row Major Matrix 2 (Column Wise Storage of Matrix 2)**: In matrix multiplication, to get a single result, the first matrix is accessed row-wise, while the second matrix is column-wise. If we naively store the second matrix row-wise, this bears very poorly on spatial locality, as elements accessed in sequence are very far apart in the memory, and incur extra cache-miss cost. <br>So transposing the Matrix vastly improves **spatial locality**. It is in fact the most important optimization, as it resolves the original memory access bottle-neck, as will be seen in the results. 
+
+2. **Tiling**: As taught in the class, tiling is used to improve **temporal latency**, that is, increasing the reuse of data within the cache for future calculations. In tiling, we divide the matrices into several, cache-fittable tiles.
+<br>It was noted that tiling, though useful independently, is not much beneficial if matrix 2 is already stored in row-major form, since the memory bottle-neck due to locality issues is already resolved.
+<br> Tiling size of `64x64` was found to be most efficient by experimentation.
+
+3. **SIMD**: `AVX2` was used as SIMD optimization. `AVX2` improves **instruction-level** parallelism. The generic C code to be implemented was:
+<br>
+
+`temp += fmat1[row_idx][i] * fmat2[i][col_idx];`
+
+Our `AVX 2` implementation for `floats` was:
+
+```
+prod_vec  = _mm256_dp_ps(row_vec, col_vec, 0xF1);
+accum_vec = _mm256_add_ps(accum_vec, prod_vec);
+```
+
+Our `AVX 2` implementation for `shorts` was:
+
+```
+prod_vec = _mm256_madd_epi16(row_vec, col_vec);
+accum_vec = _mm256_add_epi32(accum_vec, prod_vec);
+```
+
+Some peripheral `AVX` code was also used in an ancilliary role.
+
+4. **Multi-threading**: POSIX threads were used for multi-threading. Multi-threading improves **thread-level parallelism**. Threads were created along chucks of rows of matrix 1, which were then allocated to the tile-processor independently. A total of 4 parallel threads were used.
 
 
 <h2>Results & Analyses</h2>
@@ -78,11 +108,18 @@ From the above results we can see that
 - All the observations for 2-byte integer case also hold for the 4-byte floating point case.
 - This leads us to believe that, although floating point multiplications are computationally more complex, the **internal processor pipelining** allows it to maintain throughput similar to the integer multiplication case, even when using SIMD instructions. The advantage of internal pipelining is visible in cases with low instuction inter-dependency, like matrix-matrix product.
 
+<h3>The case of 10000x10000 matrix</h3>
+
+10000x10000 matrix-matrix product is very expensive in time. Nevertheless, one such execution was done with `SIMD`, `tiling`, `multi-threading` and `row-major matrix 2 form` optimizations enabled.
+
+It took `240,412` milliseconds. In contrast a 1000x1000 matrix product with same optimizations took `209` milliseconds. The time cost ratio is **1150:1**, which is close to the theoretical **1000:1**, since matrix product is an `O(3)` operation, i.e., increasing the elements by `N` increases time complexity by `N^3`.
+ 
 <h2>Conclusion</h2>
 
 From this project, we conclude the following salient lessons:
 
 - When optimizing a task, we must first identify the bottle-neck in the execution. Failing to resolve the bottle-neck may cause other unrelated optimizations to not bear any effect in speeding up the execution.
 - Conversely, resolving bottle-necks in order of their significance can give us iteratively better implementations.
+- Moreover, multiple optimizations targetting same bottleneck may not result in better performance, because the bottleneck might have shifted elsewhere (e.g. from memory to compute).
 - When parallelizing an implementation, one must be careful about the atomicity of access. If the parallel parts of the program share data, mutexes and semaphores must be used to avoid race conditions.
 - In order to reap the benefits of instruction-level parallelism, it is important that the application not be memory-bound. Therefore, the program should be structured to keep the processor occupied by providing high memory-access throughput.
