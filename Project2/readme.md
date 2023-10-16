@@ -1,11 +1,32 @@
 <h1>Project 2</h1>
 
-Project 2 is intended to demonstrate the impact of memory access paterns, instruction-level parallelism and thread-level parallelism on task execution. In this project, we demonstrate various methods to accelerate matrix-matrix multiplication, and compare the results.
+Project 2 is intended to demonstrate the impact of memory access paterns, instruction-level parallelism and thread-level parallelism on task execution. In this project, we demonstrate various methods to accelerate matrix-matrix multiplication, compare the results, and comment on how these results can be explained.
+
+The machine used for the following experiments is based on an 8-th Generation Intel laptop processor. It has 6 MBs of unified LL-cache, 4 cores, support for `AVX2`.
 
 <h2>Code Organization</h2>
 
 keywords: `function pointers`, `common execution interface`, `aligned memory mapping`, `dynamic allocation`, `CSV output`
 
+The code is organized into multiple files for modularity. Since we have to use various types of matrix multiplications, we use function pointers as a means of templating, this allows us to dynamically change the function to be called on the basis of matrix multiplication and optimization required. This allows for code reusability, and a common execution interface for various optimization/data types.
+
+The common arguments to various parts of code are passed through global structs like `execution_mode` and `mat_info`.
+<br>
+The execution flow of the program is shown below (Matrix initialization not shown)
+
+```
+Main -> Thread Scheduler (num_cores) -> Tiling Agent (tile_dimensions) --> Matrix Tile Multiplier (Naive, Short/Float)
+																	   |-> Matrix Tile Multiplier (Transposed, Short/Float)
+																	   |-> Matrix Tile Multiplier (AVX, Short/Float)
+																	   |-> Matrix Tile Multiplier (Naive, AVX, Short/Float)
+																	   |-> Matrix Tile Multiplier (Transposed, AVX, Short/Float)
+```
+In order to efficiently utilize `AVX 2`, the we use `mmap` instead of `malloc` to allocate multiple pages to our program. Memory mapped through `mmap` is always page-aligned. This has the added advantage of guarding against unaligned accesses (accesses on the edge of cache-line or `AVX` read granularity), which should give us better performance.
+
+All the matrices are dynamically allocated and initialized. This means that the 2-D arrays are manually organized. We exploit this excess of control by saving matrices in row-wise or column-wise fashion inside the memory.
+
+The program is compiled using the following command:
+`gcc short_mat_init.c float_mat_init.c short_mat_funcs.c float_mat_funcs.c tiling_agents.c main.c -mavx2 -o a.out`
 <br>
 
 <h2>Optimizations Used</h2>
@@ -60,4 +81,4 @@ From this project, we conclude the following salient lessons:
 - When optimizing a task, we must first identify the bottle-neck in the execution. Failing to resolve the bottle-neck may cause other unrelated optimizations to not bear any effect in speeding up the execution.
 - Conversely, resolving bottle-necks in order of their significance can give us iteratively better implementations.
 - When parallelizing an implementation, one must be careful about the atomicity of access. If the parallel parts of the program share data, mutexes and semaphores must be used to avoid race conditions.
-- In order to reap the benefits of instruction-level parallelism, it is important that the application not be memory-bound. Therefore, the program should be structured to keep the processor occupied by providing hight memory-access throughput.
+- In order to reap the benefits of instruction-level parallelism, it is important that the application not be memory-bound. Therefore, the program should be structured to keep the processor occupied by providing high memory-access throughput.
