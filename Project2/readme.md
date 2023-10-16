@@ -17,6 +17,9 @@ keywords: `Column Wise Matrix Storage`, `Matrix Tiling`, `Multi Threading`, `lin
 
 
 _Results for a buffer size of 32 KB. Targets L1-D cache primarily. In this case, the metric of concern is `L1-dcache-load-misses` at `perf` output_:
+
+![graph](./short_table.PNG)
+
 <img src="./short_table.PNG" width="800" height="500" />
 
 _Results for a buffer size of 256 KB. Targets L2 cache primarily_:
