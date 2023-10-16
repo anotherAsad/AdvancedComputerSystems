@@ -12,14 +12,8 @@ float *crr;
 float *drr;
 
 void initializeArrays(size_t *a, size_t *b, int length) {
-	if(ALLOC_MODE == ALIGNED) {
-		*a = (size_t) malloc(2 * length * sizeof(float));
-		*b = *a + (length * sizeof(float));
-	}
-	else {
-		*a = (size_t) malloc(length * sizeof(float));
-		*b = (size_t) malloc(length * sizeof(float));
-	}
+	*a = (size_t) malloc(2 * length * sizeof(float));
+	*b = *a + (length * sizeof(float));
 
 	float *arr = (float *) *a;
 	float *brr = (float *) *b;
@@ -64,14 +58,8 @@ int main() {
 
 	drr = (float *) malloc(8 * sizeof(float));
 
-	if(ALLOC_MODE == ALIGNED) {
-		a = *(__m256 *) arr;
-		b = *(__m256 *) brr;
-	}
-	else {
-		a = _mm256_loadu_ps(arr);
-		b = _mm256_loadu_ps(brr);
-	}
+	a = *(__m256 *) arr;
+	b = *(__m256 *) brr;
 
 	__m256 c = _mm256_dp_ps(a, b, 0xF1);
 
