@@ -25,7 +25,8 @@ _Table of execution time of various optimization texhniques under different matr
 _Comparison of execution time in seconds for various optimization techniques_:
 ![graph](./short_results.png)
 
-<h4>Analysis<h4>
+**_Analysis_**
+
 We can surmise from the above table and graph that the optimization techniques have the intended effect of accelerating the matrix-matrix product. However, some more salient comparisons are as follows:
 
 - Arguably the most important optimization seems to be the **Row-Major representation of Matrix 2**, i.e. storing the Matrix 2 in a column-wise or transposed fashion. This allows for increased **spatial-locality** and helps in **pre-fetching** by the CPU. Only representing Matrix 2 column-wise slashes the execution time down to 33%.
@@ -49,8 +50,7 @@ _Table of execution time of various optimization texhniques under different matr
 _Comparison of execution time in seconds for various optimization techniques_:
 ![graph](./float_results.png)
 
-<h4>Analysis<h4>
-
+**_Analysis_**
 From the above results we can see that
 
 - All the observations for 2-byte integer case also hold for the 4-byte floating point case.
