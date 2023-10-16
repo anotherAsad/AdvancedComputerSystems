@@ -18,7 +18,6 @@ The execution flow of the program is shown below (Matrix initialization not show
 Main -> Thread Scheduler (num_cores) -> Tiling Agent (tile_dimensions) --> Matrix Tile Multiplier (Naive, Short/Float)
                                                                        |-> Matrix Tile Multiplier (Transposed, Short/Float)
                                                                        |-> Matrix Tile Multiplier (AVX, Short/Float)
-                                                                       |-> Matrix Tile Multiplier (Naive, AVX, Short/Float)
                                                                        |-> Matrix Tile Multiplier (Transposed, AVX, Short/Float)
 ```
 In order to efficiently utilize `AVX 2`, the we use `mmap` instead of `malloc` to allocate multiple pages to our program. Memory mapped through `mmap` is always page-aligned. This has the added advantage of guarding against unaligned accesses (accesses on the edge of cache-line or `AVX` read granularity), which should give us better performance.
@@ -28,6 +27,8 @@ All the matrices are dynamically allocated and initialized. This means that the 
 The program outputs all results in a file in **CSV format**. This allows for ease of visualization and result data analyses. 
 <br>
 The program is compiled using the following command:
+<br>
+
 `gcc short_mat_init.c float_mat_init.c short_mat_funcs.c float_mat_funcs.c tiling_agents.c main.c -mavx2 -o a.out`
 
 <h2>Optimizations Used</h2>
