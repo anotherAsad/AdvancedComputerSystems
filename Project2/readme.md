@@ -17,7 +17,7 @@ keywords: `Column Wise Matrix Storage`, `Matrix Tiling`, `Multi Threading`, `lin
 The compiled results for various matrix sizes and optimization techniques are given below.
 <br>
 
-<h3>Results for 2-Byte fixed-point data-type matrices<h3>
+<h3>Results for 2-Byte fixed-point data-type matrices</h3>
 
 _Table of execution time of various optimization texhniques under different matrix sizes_:
 ![graph](./short_table.PNG)
@@ -40,7 +40,7 @@ For instance, for a matrix-matrix product of 3000x3000, the naive implementation
 
 - The best combination of optimizations seems to be "Row Major + Threading + SIMD", it usually brings the execution time to only **2.5% of the original**.
 
-<h3>Results for 4-Byte floating-point data-type matrices<h3>
+<h3>Results for 4-Byte floating-point data-type matrices</h3>
 
 _Table of execution time of various optimization texhniques under different matrix sizes_:
 ![graph](./float_table.PNG)
