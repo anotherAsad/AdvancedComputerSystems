@@ -116,7 +116,7 @@ void PrintMatrix_short(char flag) {
 
 	// Print 2nd matrix
 	if(flag & 0x2) {
-		printf("\nMatrix 2 [Trnsps: %d] (Only %dx%d top-left tile):\n\n", exec_mode.mat2transposed, PRINT_LIM, PRINT_LIM);
+		printf("\nMatrix 2 [Trnsps: %d] (Only %dx%d top-left tile):\n\n", exec_mode.RowMajorMat2, PRINT_LIM, PRINT_LIM);
 		
 		for(int row_idx=0; row_idx<min(mat2info.num_rows, PRINT_LIM); row_idx++) {
 			for(int col_idx=0; col_idx<min(mat2info.num_cols, PRINT_LIM); col_idx++)

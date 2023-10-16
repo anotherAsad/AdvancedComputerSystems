@@ -9,16 +9,13 @@
 
 
 extern struct mat_info_t mat1info, mat2info, matRinfo;
+extern struct exec_mode_t exec_mode;
 
-/////////////////////////////////////// EXPOSABLES ///////////////////////////////////////
-TilingAgent_ptr *TilingAgent = TilingAgent_original;
-struct exec_mode_t exec_mode;
-/////////////////////////////////////////////////////////////////////////////////////////
 static TiledMatProduct_ptr *TiledMatProduct = NULL;
 
 static void SelectTiledMatProductImpl(void) {
 	// Select the correct function for TiledMatProduct.
-	if(exec_mode.mat2transposed)
+	if(exec_mode.RowMajorMat2)
 		if(exec_mode.avx)
 			if(exec_mode.type == FLOAT)
 				TiledMatProduct = TiledMatProduct_ABt_avx2_float;
@@ -121,13 +118,13 @@ void ThreadScheduler(int num_threads, int tile_vlen, int tile_hlen) {
 Ref usage of TiledMatProduct:
 void TiledMatProduct_AB(range mat1rows, range mat2cols, range dot_prod_len)
 */
-void TilingAgent_original(int tile_vlen, int tile_hlen) {
+static void TilingAgent_original(int tile_vlen, int tile_hlen) {
 	range mat1rows, mat2cols, dot_prod_len;
 
 	// Chose the function type
 	TiledMatProduct_ptr *TiledMatProduct = NULL;
 
-	if(exec_mode.mat2transposed)
+	if(exec_mode.RowMajorMat2)
 		if(exec_mode.avx)
 			TiledMatProduct = TiledMatProduct_ABt_avx2_short;
 		else
@@ -167,13 +164,13 @@ Ref usage of TiledMatProduct:
 void TiledMatProduct_AB(range mat1rows, range mat2cols, range dot_prod_len)
 */
 
-void TilingAgent_classic(int tile_vlen, int tile_hlen) {
+static void TilingAgent_classic(int tile_vlen, int tile_hlen) {
 	range mat1rows, mat2cols, dot_prod_len;
 
 	// Chose the function type
 	TiledMatProduct_ptr *TiledMatProduct = NULL;
 
-	if(exec_mode.mat2transposed)
+	if(exec_mode.RowMajorMat2)
 		if(exec_mode.avx)
 			TiledMatProduct = TiledMatProduct_ABt_avx2_short;
 		else

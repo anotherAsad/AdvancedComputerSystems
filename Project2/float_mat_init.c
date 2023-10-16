@@ -23,14 +23,6 @@ void InitializeMatrices_float(void) {
 	auto void PopulateMatrixFromFile(float *arr, int size);		// subroutine to populate matrices
 	auto void PopulateMatrixAtRandom(float *arr, int size);
 
-	mat1info.num_rows = ROW_COUNT;
-	mat1info.num_cols = COL_COUNT;
-
-	// #rows_mat2 == #cols_mat1
-	mat2info.num_rows = COL_COUNT;
-	mat2info.num_cols = ROW_COUNT;
-	exec_mode.mat2transposed = 0;
-
 	// Results has dimensions (#rows, #cols) = (#rows_mat1, #cols_mat2)
 	matRinfo.num_rows = mat1info.num_rows;
 	matRinfo.num_cols = mat2info.num_cols;
@@ -123,7 +115,7 @@ void PrintMatrix_float(char flag) {
 
 	// Print 2nd matrix
 	if(flag & 0x2) {
-		printf("\nMatrix 2 [Trnsps: %d] (Only %dx%d top-left tile):\n\n", exec_mode.mat2transposed, PRINT_LIM, PRINT_LIM);
+		printf("\nMatrix 2 [Trnsps: %d] (Only %dx%d top-left tile):\n\n", exec_mode.RowMajorMat2, PRINT_LIM, PRINT_LIM);
 		
 		for(int row_idx=0; row_idx<min(mat2info.num_rows, PRINT_LIM); row_idx++) {
 			for(int col_idx=0; col_idx<min(mat2info.num_cols, PRINT_LIM); col_idx++)

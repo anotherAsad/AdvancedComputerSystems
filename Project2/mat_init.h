@@ -6,9 +6,9 @@ struct mat_info_t {
 };
 
 struct exec_mode_t {
-	char avx;
 	char type;
-	char mat2transposed;
+	char RowMajorMat2;
+	char avx;
 	int  num_cores;
 	int  tile_hlen, tile_vlen;
 };
