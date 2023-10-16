@@ -23,11 +23,12 @@ Main -> Thread Scheduler (num_cores) -> Tiling Agent (tile_dimensions) --> Matri
 ```
 In order to efficiently utilize `AVX 2`, the we use `mmap` instead of `malloc` to allocate multiple pages to our program. Memory mapped through `mmap` is always page-aligned. This has the added advantage of guarding against unaligned accesses (accesses on the edge of cache-line or `AVX` read granularity), which should give us better performance.
 
-All the matrices are dynamically allocated and initialized. This means that the 2-D arrays are manually organized. We exploit this excess of control by saving matrices in row-wise or column-wise fashion inside the memory.
+All the matrices are dynamically allocated and initialized. This means that the 2-D arrays are manually organized. We exploit this excess of control by saving matrix rows (or sometimes, columns) in a contiguous, 1-D fashion. This helps with drastically increasing **spatial locality** and **pre-fetching** potential.
 
+The program outputs all results in a file in **CSV format**. This allows for ease of visualization and result data analyses. 
+<br>
 The program is compiled using the following command:
 `gcc short_mat_init.c float_mat_init.c short_mat_funcs.c float_mat_funcs.c tiling_agents.c main.c -mavx2 -o a.out`
-<br>
 
 <h2>Optimizations Used</h2>
 
