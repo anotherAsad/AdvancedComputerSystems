@@ -112,7 +112,7 @@ From the above results we can see that
 
 10000x10000 matrix-matrix product is very expensive in time. Nevertheless, one such execution was done with `SIMD`, `tiling`, `multi-threading` and `row-major matrix 2 form` optimizations enabled.
 
-It took `240,412` milliseconds. In contrast a 1000x1000 matrix product with same optimizations took `209` milliseconds. The time cost ratio is **1150:1**, which is close to the theoretical **1000:1**, since matrix product is an `O(3)` operation, i.e., increasing the elements by `N` increases time complexity by `N^3`.
+It took `240,412` milliseconds. In contrast a 1000x1000 matrix product with same optimizations took `209` milliseconds. The time cost ratio is **1150:1**, which is close to the theoretical **1000:1**, since matrix product is an `O(N^3)` operation, i.e., increasing the elements by `N` increases time complexity by `N^3`.
  
 <h2>Conclusion</h2>
 
