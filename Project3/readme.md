@@ -10,6 +10,7 @@ keywords: `fio jobs`, `read-write load simulation`, `python scripts`, `JSON outp
 <h4>SSD under test:</h4>
 Toshiba KXG60ZNV256G - 256 GB NVMe SSD. 512 MB seperate drive created for all fio experiments.
 
+<h4>fio job description file:</h4>
 The fio command-line utility can take a job description file as input. The job description file contains the details of the IO job to be carried out. Contents of a sample job description file are given below:
 
 ```
@@ -27,43 +28,56 @@ size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
 ; -- end job file --
 ```
 
-
+Job description files like these were used with some changes to meet the needs of all stipulated testing scenarios. An example command which uses the job description file `jobfile.fio` is given below.
 
 <h4>Command Format:</h4>
-An example command which uses the job description file `jobfile.fio` is given below:<br>
-
 ```bash
 sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio
 ```
 
-<h4>Experiment Overview and Organization:</h4>
+<h3>Stat Collection Overview:</h3>
 
-- How experiment is organized
-- Why so
+The assignment calls for measuring the stats for various queue-lengths, access sizes and read-write ratios. However, the fio utility is not very flexible with different read-write ratios. The only random read/write ratio options available out of the box are `0:100`, `50:50` and `100:0`. To achieve stats for read-write ratio of `75:25`, we run 4 parallel jobs, 1 for writes and 3 for reads. A job description file specifying 4 parallel jobs is as follows:
 
-The code is organized into multiple files for modularity. Since we have to use various types of matrix multiplications, we use function pointers as a means of templating, this allows us to dynamically change the function to be called on the basis of matrix multiplication and optimization required. This allows for code reusability, and a common execution interface for various optimization/data types.
+```
+[global]                    ; Common params for all jobs
+ioengine=libaio
+numjobs=1
+direct=1
+fsync=0
+filename=/dev/nvme0n1p5
 
-The common arguments to various parts of code are passed through global structs like `execution_mode` and `mat_info`.
-<br>
-The execution flow of the program is shown below (Matrix initialization not shown)
+[j1]                        ; Job 1. Performs parallel random reads.
+rw=randread
+size=128m                   ; Assigned read/write space. 512MB/4 = 128MB.
 
-In order to efficiently utilize `AVX 2`, the we use `mmap` instead of `malloc` to allocate multiple pages to our program. Memory mapped through `mmap` is always page-aligned. This has the added advantage of guarding against unaligned accesses (accesses on the edge of cache-line or `AVX` read granularity), which should give us better performance.
+[j2]                        ; Job 2. Performs parallel random reads.
+rw=randread
+size=128m
 
-All the matrices are dynamically allocated and initialized. This means that the 2-D arrays are manually organized. We exploit this excess of control by saving matrix rows (or sometimes, columns) in a contiguous, 1-D fashion. This helps with drastically increasing **spatial locality** and **pre-fetching** potential.
+[j3]                        ; Job 3. Performs parallel random reads.
+rw=randread
+size=128m
 
-The program outputs all results in a file in **CSV format**. This allows for ease of visualization and result data analyses. 
-<br>
-The program is compiled using the following command:
-<br>
+[j4]                        ; Job 4. Performs parallel random reads.
+rw=randwrite
+size=128m
+```
 
-`gcc short_mat_init.c float_mat_init.c short_mat_funcs.c float_mat_funcs.c tiling_agents.c main.c -mavx2 -o a.out`
+in order to efficiently gather stats for all the required cases of **read-write ratios**, **queue lengths** and **access sizes**, we perfome the steps given below. These steps are automated via a few python scripts.
+
+1. Create jobs with varios read-write loads. Done by `jobfile_maker.py`
+2. Iteratively call `fio` command-line utility for all the required **read-write ratios**, **queue lengths** and **access sizes**. This is done by `command_iterator.py`. `fio`'s default output is in human-readable text format, which - while easy to read -  can be quite cumbersome to manually extract information from. Fortunately, `fio` can also emit the results in `JSON` format which can be easily parsed to get required information.
+3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters.
+
+The format bash command executed in `command_iterator.py` is given below:<br>
+```bash
+sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k --iodepth=16 JobFiles/jobfile_RW_100_0.fio"
+```
+
 
 <h3>Note on Multi-Job Mode and single job equivalence</h3>
 It seems that the total queue length = queue length of a single job * number of jobs
-
-<h2>Optimizations Used</h2>
-
-keywords: `NVMe support for multiple queues`, `parallel jobs`, `python script`, `JSON processing`
 
 <h2>Results & Analyses</h2>
 
