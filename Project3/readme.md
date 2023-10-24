@@ -1,17 +1,36 @@
 <h1>Project 3</h1>
 
-Project 2 is intended to demonstrate the impact of memory access paterns, instruction-level parallelism and thread-level parallelism on task execution. In this project, we demonstrate various methods to accelerate matrix-matrix multiplication, compare the results, and comment on how these results can be explained.
+Project 3 is intended to explore the behavior and capabilites of non-volatile storage devices. In this project we use the **fio** utility on Ubuntu 20.04, and try to acquire stats like **bandwidth**, **IOPS** and **latency** under various work-load types with different **data access sizes**, **target queue lengths** and **read/write ratios**.
 
 
 <h2>1. Experimental Setup</h2>
 
-keywords: `fio jobs`, `python scripts`, `read-write load simulation`, `JSON output`, `Queue length equivalence`
+keywords: `fio jobs`, `read-write load simulation`, `python scripts`, `JSON output`, `Queue length equivalence`
 
-<h4>Hardware Used:</h4>
-256 GB NVMe SSD. 512 MB seperate drive created for all fio experiments.
+<h4>SSD under test:</h4>
+Toshiba KXG60ZNV256G - 256 GB NVMe SSD. 512 MB seperate drive created for all fio experiments.
+
+The fio command-line utility can take a job description file as input. The job description file contains the details of the IO job to be carried out. Contents of a sample job description file are given below:
+
+```
+; -- start job file --
+[job1]
+ioengine=libaio             ; use the standard linux async IO library
+iodepth=32                  ; Target queue depth to be maintained. Impacts bandwidth. 
+bs=4k                       ; Block size of is the unit of IO to be read or written, i.e., the data access size.
+numjobs=1                   ; !! Misleading. Number of identical processes to be spawned for each job.  
+direct=1					; Avoid kernel caching for disk IOs.
+fsync=0                     ; Do not issue fsync after every access. Setting it to 1 drastically diminishes IOPS and BW.
+filename=/dev/nvme0n1p5     ; Name of the target drive for test
+rw=randwrite                ; Type of access pattern. Can be randwrite, randread, randrw and all their sequential counter parts
+size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
+; -- end job file --
+```
+
+
 
 <h4>Command Format:</h4>
-An example command format which uses the job description file `jobfile.fio` is given below:<br>
+An example command which uses the job description file `jobfile.fio` is given below:<br>
 
 ```bash
 sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio
