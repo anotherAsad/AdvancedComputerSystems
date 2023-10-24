@@ -1,0 +1,26 @@
+
+; -- start job file --
+[global]
+ioengine=libaio
+;iodepth=16
+;bs=4k
+numjobs=1
+direct=1					; Avoid kernel caching.
+fsync=0
+filename=/dev/nvme0n1p5
+
+[j1]
+rw=randwrite
+size=128m
+
+[j2]
+rw=randwrite
+size=128m
+
+[j3]
+rw=randwrite
+size=128m
+
+[j4]
+rw=randwrite
+size=128m
