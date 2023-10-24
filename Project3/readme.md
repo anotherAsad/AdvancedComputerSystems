@@ -3,17 +3,21 @@
 Project 2 is intended to demonstrate the impact of memory access paterns, instruction-level parallelism and thread-level parallelism on task execution. In this project, we demonstrate various methods to accelerate matrix-matrix multiplication, compare the results, and comment on how these results can be explained.
 
 
-<h2>Experimental Setup</h2>
+<h2>1. Experimental Setup</h2>
 
 keywords: `fio jobs`, `python scripts`, `read-write load simulation`, `JSON output`, `Queue length equivalence`
 
-<h4>Hardware Used</h4>
+<h4>Hardware Used:</h4>
 256 GB NVMe SSD. 512 MB seperate drive created for all fio experiments.
 
-<h4>Command Format</h4>
+<h4>Command Format:</h4>
 An example command format which uses the job description file `jobfile.fio` is given below:<br>
 
-`sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio`
+```bash
+sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio
+```
+
+<h4>Experiment Overview and Organization:</h4>
 
 - How experiment is organized
 - Why so
@@ -24,12 +28,6 @@ The common arguments to various parts of code are passed through global structs 
 <br>
 The execution flow of the program is shown below (Matrix initialization not shown)
 
-```
-Main -> Thread Scheduler (num_cores) -> Tiling Agent (tile_dimensions) --> Matrix Tile Multiplier (Naive, Short/Float)
-                                                                       |-> Matrix Tile Multiplier (Transposed, Short/Float)
-                                                                       |-> Matrix Tile Multiplier (AVX, Short/Float)
-                                                                       |-> Matrix Tile Multiplier (Transposed, AVX, Short/Float)
-```
 In order to efficiently utilize `AVX 2`, the we use `mmap` instead of `malloc` to allocate multiple pages to our program. Memory mapped through `mmap` is always page-aligned. This has the added advantage of guarding against unaligned accesses (accesses on the edge of cache-line or `AVX` read granularity), which should give us better performance.
 
 All the matrices are dynamically allocated and initialized. This means that the 2-D arrays are manually organized. We exploit this excess of control by saving matrix rows (or sometimes, columns) in a contiguous, 1-D fashion. This helps with drastically increasing **spatial locality** and **pre-fetching** potential.
@@ -41,7 +39,7 @@ The program is compiled using the following command:
 
 `gcc short_mat_init.c float_mat_init.c short_mat_funcs.c float_mat_funcs.c tiling_agents.c main.c -mavx2 -o a.out`
 
-<h2>Note on Multi-Job Mode and single job equivalence</h2>
+<h3>Note on Multi-Job Mode and single job equivalence</h3>
 It seems that the total queue length = queue length of a single job * number of jobs
 
 <h2>Optimizations Used</h2>
