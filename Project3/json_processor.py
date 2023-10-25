@@ -25,11 +25,12 @@ def extract_stats(job_list):
 for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 	print(f"**R/W ratio: {rw.replace('_', ':')}**")
 	print("====================")
-	# Try to make an MD table
-	print("|Access Size | Queue Depth |=>| Bandwidth | IOPS | Latency |")
-	print("|------------|-------------|--|-----------|------|---------|")
 
 	for bsize in [4, 16, 32, 128]:											# block_size_in_KiB
+		# Try to make an MD table
+		print("|Access Size | Queue Depth |=>| Bandwidth | IOPS | Latency |")
+		print("|------------|-------------|--|-----------|------|---------|")
+
 		for qlen in [4, 8, 32, 256, 1024]:									# total target_queue_len
 			# Open file
 			file =  open(f"output_files/outfile_blk{bsize}k_qlen{qlen}_rw{rw}.json", "r")
@@ -40,7 +41,7 @@ for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 			print(f"|{bsize:3}k | {qlen:4} ", end=" |=>| ")
 			print(f"{bw_kb/1000:7.2f} MB/sec | {iops/1000:6.2f} k | {lat_ms:8.2f} ms|")
 		
-		print("|Access Size | ~ ~ |=>| Bandwidth | IOPS | Latency |")
+		print("<br>")
 	print("\n")
 
 
