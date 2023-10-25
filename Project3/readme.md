@@ -1,6 +1,6 @@
 <h1>Project 3</h1>
 
-Project 3 is intended to explore the behavior and capabilites of non-volatile storage devices. In this project we use the **fio** utility on Ubuntu 20.04, and try to acquire stats like **bandwidth**, **IOPS** and **latency** under various work-load types with different **data access sizes**, **target queue lengths** and **read/write ratios**.
+Project 3 is intended to explore the behavior and capabilites of non-volatile storage devices. In this project we use the **fio** utility on Ubuntu 20.04, and try to acquire stats like **bandwidth**, **IOPS** and **latency** under work-loads with with varying **data access sizes**, **target queue lengths** and **read/write ratios**.
 
 
 <h2>1. Experimental Setup</h2>
@@ -8,11 +8,11 @@ Project 3 is intended to explore the behavior and capabilites of non-volatile st
 keywords: `fio jobs`, `read-write load simulation`, `python scripts`, `JSON output`, `Queue length equivalence`
 
 <h4>SSD under test:</h4>
-Toshiba KXG60ZNV256G - 256 GB NVMe SSD. 512 MB seperate drive created for all fio experiments.
+Toshiba KXG60ZNV256G - 256 GB NVMe SSD.<br>
+512 MB seperate drive created for all fio experiments.
 
 <h4>fio job description file:</h4>
-The fio command-line utility can take a job description file as input. The job description file contains the details of the IO job to be carried out. Contents of a sample job description file are given below:
-
+The **fio** command-line utility can take a job description file as input. The job description file contains the details of the IO job to be carried out. Contents of a sample job description file are given below:
 ```
 ; -- start job file --
 [job1]
@@ -35,9 +35,9 @@ Job description files like these were used with some changes to meet the needs o
 sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio
 ```
 
-<h3>Stat Collection Overview:</h3>
+<h3>Stats Collection Overview</h3>
 
-The assignment calls for measuring the stats for various queue-lengths, access sizes and read-write ratios. However, the fio utility is not very flexible with different read-write ratios. The only random read/write ratio options available out of the box are `0:100`, `50:50` and `100:0`. To achieve stats for read-write ratio of `75:25`, we run 4 parallel jobs, 1 for writes and 3 for reads. A job description file specifying 4 parallel jobs is as follows:
+The assignment calls for measuring the stats for various **data access sizes**, **target queue lengths** and **read/write ratios**. However, the **fio** utility is not very flexible with different read-write ratios. The only random read/write ratio options available out of the box are `0:100`, `50:50` and `100:0`. To achieve stats for read-write ratio of `75:25`, we run 4 parallel jobs, 1 for writes and 3 for reads. A job description file specifying 4 parallel jobs is as follows:
 
 ```
 [global]                    ; Common params for all jobs
@@ -59,27 +59,25 @@ size=128m
 rw=randread
 size=128m
 
-[j4]                        ; Job 4. Performs parallel random reads.
+[j4]                        ; Job 4. Performs parallel random writes.
 rw=randwrite
 size=128m
 ```
 
-in order to efficiently gather stats for all the required cases of **read-write ratios**, **queue lengths** and **access sizes**, we perfome the steps given below. These steps are automated via a few python scripts.
+In order to efficiently gather stats for all the required cases of **read-write ratios**, **queue lengths** and **access sizes**, we perfome the steps given below. These steps are automated via a few python scripts.
 
 1. Create jobs with varios read-write loads. Done by `jobfile_maker.py`
-2. Iteratively call `fio` command-line utility for all the required **read-write ratios**, **queue lengths** and **access sizes**. This is done by `command_iterator.py`. `fio`'s default output is in human-readable text format, which - while easy to read -  can be quite cumbersome to manually extract information from. Fortunately, `fio` can also emit the results in `JSON` format which can be easily parsed to get required information.
-3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters.
+2. Iteratively call `fio` command-line utility for all the required **read-write ratios**, **queue lengths** and **access sizes**. This is done by `command_iterator.py`. **fio**'s default output is in human-readable text format, which - while easy to read -  can be quite cumbersome to manually extract information from. Fortunately, **fio** can also emit the results in `JSON` format which can be easily parsed to get required information.
+3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters. Done by `json_processor.py`.
 
-The format bash command executed in `command_iterator.py` is given below:<br>
+The format bash of command executed in `command_iterator.py` is given below. This one perfomrs read-only test with IO blocks of 4 KiB and target queue length of 16:<br>
 ```bash
-sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k --iodepth=16 JobFiles/jobfile_RW_100_0.fio"
+sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k --iodepth=16 JobFiles/jobfile_RW_100_0.fio
 ```
 
-
-<h3>Note on Multi-Job Mode and single job equivalence</h3>
-It seems that the total queue length = queue length of a single job * number of jobs
-
 <h2>Results & Analyses</h2>
+
+This section summarizes with the results of the **fio** experiments extracted via `json_processor.py`.
 
 <h3> R/W Ratio of 100:0</h3>
 
