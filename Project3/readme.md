@@ -92,15 +92,33 @@ _Table of statistics for read-vs-write ratio of 100:0_:
 
 <h3> R/W Ratio of 50:50</h3>
 
+**R/W ratio: 50:50**
+====================
+
+_Table of statistics for read-vs-write ratio of 50:50_:
+![graph](./Table_RW_50_50.PNG)
+
 - script output screenshots
 - Comments
 
 <h3> R/W Ratio of 75:25</h3>
 
+**R/W ratio: 75:25**
+====================
+
+_Table of statistics for read-vs-write ratio of 75:25_:
+![graph](./Table_RW_75_25.PNG)
+
 - script output screenshots
 - Comments
 
 <h3> R/W Ratio of 0:100</h3>
+
+**R/W ratio: 0:100**
+====================
+
+_Table of statistics for read-vs-write ratio of 0:100_:
+![graph](./Table_RW_0_100.PNG)
 
 - script output screenshots
 - Comments
