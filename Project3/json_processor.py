@@ -20,6 +20,7 @@ def extract_stats(job):
 for rw in ["100_0", "0_100", "50_50", "70_30"]:	#, "50_50", "75_25", "0_100"]:					# rw_ratios
 	print(f"*** R/W ratio: {rw.replace('_', ':')} ***")
 	print(f"========================")
+	
 	for bsize in [4, 16, 32, 128]:											# block_size_in_KiB
 		for qlen in [1, 8, 32, 256, 1024]:									# total target_queue_len
 			# Open file
