@@ -12,7 +12,9 @@ Toshiba KXG60ZNV256G - 256 GB NVMe SSD.<br>
 512 MB seperate drive created for all fio experiments.
 
 <h4>fio job description file:</h4>
+
 The **fio** command-line utility can take a job description file as input. The job description file contains the details of the IO job to be carried out. Contents of a sample job description file are given below:
+
 ```
 ; -- start job file --
 [job1]
@@ -31,6 +33,7 @@ size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
 Job description files like these were used with some changes to meet the needs of all stipulated testing scenarios. An example command which uses the job description file `jobfile.fio` is given below.
 
 <h4>Command Format:</h4>
+
 ```bash
 sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio
 ```
@@ -85,30 +88,34 @@ _Table of statistics for read-vs-write ratio of 100:0_
 ![graph](./Table_RW_100_0.PNG)
 
 From the above table, we observe that
-- The relationship between IOPS and throughput (called bandwidth in context of **fio**) agrees with the theory, i.e., $Bandwidth = IOPS * BlockSize$.
+
+- The relationship between IOPS and throughput (called bandwidth in context of **fio**) agrees with the theory, i.e., $Bandwidth = IOPS * SizeOfDataAccess$.
 - [*] Increase in queue length corresponds with increase in bandwidth (and also IOPS) along with latency. This is in line with the queuing theory: Higher queue length means better server utilization, which allows the queue server to achieve a higher fraction of maximum bandwidth. However, it also increases latency due to queue width $T_q$.
-- Larger data access sizes result in higher bandwidth
+- Larger data access sizes result in higher bandwidth. This is because _(a)_ larger contiguous data accesses inside a NAND page have the same access latency as smaller chunks of data, i.e., internally, IOPS are the limiting factor, _(b)_ sequential accesses are faster inside an SSD and can be achieved with lesser number of read/write commands, _(c)_ Larger access sizes mean lesser number of total IOs, while service time of a single IO is more or less the same (limited by transfer or external bandwidth of the NVMe interconnect).
+- Larger data access sizes often result in lower IOPS. But since it also decreases the access time for a single IO, the net effect is that of bandwidth increase.
+- Larger data access sizes correspond with higher latency. This is probably because of the strain of maximum external transfer bandwidth of the NVMe due to more data being moved around per IO.
+
+<h3> Results for R/W Ratio of 0:100</h3>
+
+_Table of statistics for read-vs-write ratio of 0:100_
+![graph](./Table_RW_0_100.PNG)
+
+- script output screenshots
+- Comments
 
 <h3> Results for R/W Ratio of 50:50</h3>
 
 _Table of statistics for read-vs-write ratio of 50:50_
 ![graph](./Table_RW_50_50.PNG)
 
-- script output screenshots
-- Comments
+From the above table, we observe that
+
+- As opposed to the case of 100% reads, the equal read write distribution results in lower bandwidth
 
 <h3> Results for R/W Ratio of 75:25</h3>
 
 _Table of statistics for read-vs-write ratio of 75:25_
 ![graph](./Table_RW_75_25.PNG)
-
-- script output screenshots
-- Comments
-
-<h3> Results for R/W Ratio of 0:100</h3>
-
-_Table of statistics for read-vs-write ratio of 0:100_
-![graph](./Table_RW_0_100.PNG)
 
 - script output screenshots
 - Comments
