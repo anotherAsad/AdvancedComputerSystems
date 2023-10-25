@@ -22,7 +22,7 @@ def extract_stats(job_list):
 	
 	
 		
-for rw in ["100_0", "50_50", "75_25", "0_100"]:					# rw_ratios
+for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 	print(f"*** R/W ratio: {rw.replace('_', ':')} ***")
 	print(f"========================")
 	for bsize in [4, 16, 32, 128]:											# block_size_in_KiB

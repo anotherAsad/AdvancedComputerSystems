@@ -1,6 +1,6 @@
 <h1>Project 3</h1>
 
-Project 3 is intended to explore the behavior and capabilites of non-volatile storage devices. In this project we use the **fio** utility on Ubuntu 20.04, and try to acquire stats like **bandwidth**, **IOPS** and **latency** under work-loads with with varying **data access sizes**, **target queue lengths** and **read/write ratios**.
+Project 3 is intended to explore the behavior and capabilites of non-volatile storage devices. In this project we use the **fio** utility on Ubuntu, and try to acquire stats like **bandwidth**, **IOPS** and **latency** under work-loads with with varying **data access sizes**, **target queue lengths** and **read/write ratios**.
 
 
 <h2>1. Experimental Setup</h2>
@@ -66,7 +66,7 @@ size=128m
 
 In order to efficiently gather stats for all the required cases of **read-write ratios**, **queue lengths** and **access sizes**, we perfome the steps given below. These steps are automated via a few python scripts.
 
-1. Create jobs with varios read-write loads. Done by `jobfile_maker.py`
+1. Create jobs with various read-write loads. Done by `jobfile_maker.py`
 2. Iteratively call `fio` command-line utility for all the required **read-write ratios**, **queue lengths** and **access sizes**. This is done by `command_iterator.py`. **fio**'s default output is in human-readable text format, which - while easy to read -  can be quite cumbersome to manually extract information from. Fortunately, **fio** can also emit the results in `JSON` format which can be easily parsed to get required information.
 3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters. Done by `json_processor.py`.
 
@@ -80,6 +80,33 @@ sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k
 This section summarizes with the results of the **fio** experiments extracted via `json_processor.py`.
 
 <h3> R/W Ratio of 100:0</h3>
+
+*** R/W ratio: 100:0 ***
+========================
+Access Size:   4k | Queue Depth:    4  ||  BW:  223.96 MB/sec, iops:  55.99 k, lat:    70.22 ms
+Access Size:   4k | Queue Depth:    8  ||  BW:  422.39 MB/sec, iops: 105.60 k, lat:    74.84 ms
+Access Size:   4k | Queue Depth:   32  ||  BW:  980.92 MB/sec, iops: 245.23 k, lat:   129.51 ms
+Access Size:   4k | Queue Depth:  256  ||  BW:  940.13 MB/sec, iops: 235.03 k, lat:  1086.15 ms
+Access Size:   4k | Queue Depth: 1024  ||  BW: 1126.36 MB/sec, iops: 281.59 k, lat:  3624.95 ms
+-------------------------------------------------------------------------------------------------
+Access Size:  16k | Queue Depth:    4  ||  BW:  597.83 MB/sec, iops:  37.36 k, lat:   105.53 ms
+Access Size:  16k | Queue Depth:    8  ||  BW: 1046.59 MB/sec, iops:  65.41 k, lat:   121.02 ms
+Access Size:  16k | Queue Depth:   32  ||  BW: 1920.58 MB/sec, iops: 120.04 k, lat:   264.08 ms
+Access Size:  16k | Queue Depth:  256  ||  BW: 1788.40 MB/sec, iops: 111.78 k, lat:  2280.54 ms
+Access Size:  16k | Queue Depth: 1024  ||  BW: 1963.97 MB/sec, iops: 122.75 k, lat:  8267.64 ms
+-------------------------------------------------------------------------------------------------
+Access Size:  32k | Queue Depth:    4  ||  BW:  913.15 MB/sec, iops:  28.54 k, lat:   138.95 ms
+Access Size:  32k | Queue Depth:    8  ||  BW: 1479.00 MB/sec, iops:  46.22 k, lat:   171.76 ms
+Access Size:  32k | Queue Depth:   32  ||  BW: 1854.31 MB/sec, iops:  57.95 k, lat:   548.22 ms
+Access Size:  32k | Queue Depth:  256  ||  BW: 2003.23 MB/sec, iops:  62.60 k, lat:  4053.12 ms
+Access Size:  32k | Queue Depth: 1024  ||  BW: 2261.17 MB/sec, iops:  70.66 k, lat: 14195.38 ms
+-------------------------------------------------------------------------------------------------
+Access Size: 128k | Queue Depth:    4  ||  BW: 1906.54 MB/sec, iops:  14.89 k, lat:   264.09 ms
+Access Size: 128k | Queue Depth:    8  ||  BW: 2402.24 MB/sec, iops:  18.77 k, lat:   424.10 ms
+Access Size: 128k | Queue Depth:   32  ||  BW: 2585.89 MB/sec, iops:  20.20 k, lat:  1571.53 ms
+Access Size: 128k | Queue Depth:  256  ||  BW: 2398.51 MB/sec, iops:  18.74 k, lat: 13323.49 ms
+Access Size: 128k | Queue Depth: 1024  ||  BW: 2470.90 MB/sec, iops:  19.30 k, lat: 50564.85 ms
+-------------------------------------------------------------------------------------------------
 
 - script output screenshots
 - Comments
