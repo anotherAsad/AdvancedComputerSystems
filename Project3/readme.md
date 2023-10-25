@@ -13,70 +13,42 @@ Toshiba KXG60ZNV256G - 256 GB NVMe SSD.<br>
 
 <h4>fio job description file:</h4>
 
-The **fio** command-line utility can take a job description file as input. The job description file contains the details of the IO job to be carried out. Contents of a sample job description file are given below:
+The **fio** command-line utility can take a job description file as input. The job description file contains the params for the IO job to be carried out. Contents of the job description file used in this project are given below, We use this file to pass common parameters for all out tests:
 
-```
 ; -- start job file --
-[job1]
+[Job1]
 ioengine=libaio             ; use the standard linux async IO library
-iodepth=32                  ; Target queue depth to be maintained. Impacts bandwidth. 
-bs=4k                       ; Block size of is the unit of IO to be read or written, i.e., the data access size.
-numjobs=1                   ; !! Misleading. Number of identical processes to be spawned for each job.  
-direct=1					; Avoid kernel caching for disk IOs.
+;iodepth=32                 ; Target queue depth to be maintained. Impacts bandwidth. 
+;bs=4k                      ; Block size is the unit of IO to be read or written, i.e., the data access size.
+numjobs=1                   ; Number of identical processes to be spawned for each job.  
+direct=1                    ; Avoid kernel caching for disk IOs.
 fsync=0                     ; Do not issue fsync after every access. Setting it to 1 drastically diminishes IOPS and BW.
 filename=/dev/nvme0n1p5     ; Name of the target drive for test
-rw=randwrite                ; Type of access pattern. Can be randwrite, randread, randrw and all their sequential counter parts
+rw=randrw	                ; Type of access pattern. Can be randwrite, randread, randrw and all their sequential counterparts
 size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
 ; -- end job file --
-```
-
-Job description files like these were used with some changes to meet the needs of all stipulated testing scenarios. An example command which uses the job description file `jobfile.fio` is given below.
 
 <h4>Command Format:</h4>
 
+A bash command that invokes the fio utility is given below. All flags passed are used for parameters that change across tests.
+
 ```bash
-sudo fio --output=../output_files/outfile.json --output-format=json --bs=4k --iodepth=8 jobfile.fio
+sudo fio --output-format=json --output=../out_dir/outfile.json --bs=4k --iodepth=8 --rwmixread=50 jobfile.fio
+
+# Flag Description:
+# --output-format=json	|	Save output in JSON format. As opposed to simle text, JSON format can be easily parsed at result collection stage.
+# --bs=4k				|	Data access size for a single IO is 4K. Overrides the option in jobfile.fio
+# --iodepth=8			|	Target queue depth is 8
+# --rwmixread=50		|	Percentage of reads in total IOs
+# jobfile.fio			| 	Job description file used.
 ```
 
 <h3>Stats Collection Overview</h3>
 
-The assignment calls for measuring the stats for various **data access sizes**, **target queue lengths** and **read/write ratios**. However, the **fio** utility is not very flexible with different read-write ratios. The only random read/write ratio options available out of the box are `0:100`, `50:50` and `100:0`. To achieve stats for read-write ratio of `75:25`, we run 4 parallel jobs, 1 for writes and 3 for reads. A job description file specifying 4 parallel jobs is as follows:
+The assignment calls for measuring the stats for various combinations of workloads. In order to efficiently collect these stats we use a few python scripts:
 
-```
-[global]                    ; Common params for all jobs
-ioengine=libaio
-numjobs=1
-direct=1
-fsync=0
-filename=/dev/nvme0n1p5
-
-[j1]                        ; Job 1. Performs parallel random reads.
-rw=randread
-size=128m                   ; Assigned read/write space. 512MB/4 = 128MB.
-
-[j2]                        ; Job 2. Performs parallel random reads.
-rw=randread
-size=128m
-
-[j3]                        ; Job 3. Performs parallel random reads.
-rw=randread
-size=128m
-
-[j4]                        ; Job 4. Performs parallel random writes.
-rw=randwrite
-size=128m
-```
-
-In order to efficiently gather stats for all the required cases of **read-write ratios**, **queue lengths** and **access sizes**, we perfome the steps given below. These steps are automated via a few python scripts.
-
-1. Create jobs with various read-write loads. Done by `jobfile_maker.py`
-2. Iteratively call `fio` command-line utility for all the required **read-write ratios**, **queue lengths** and **access sizes**. This is done by `command_iterator.py`. **fio**'s default output is in human-readable text format, which - while easy to read -  can be quite cumbersome to manually extract information from. Fortunately, **fio** can also emit the results in `JSON` format which can be easily parsed to get required information.
-3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters. THis is done by `json_processor.py`.
-
-The format bash of command executed in `command_iterator.py` is given below. This one perfomrs read-only test with IO blocks of 4 KiB and target queue length of 16:<br>
-```bash
-sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k --iodepth=16 JobFiles/jobfile_RW_100_0.fio
-```
+1. We use `command_iterator.py` to iterate of **data access sizes**, **target queue lengths** and **read/write ratios**, and issue fio commands that write their results to the `out_dir` directory. For ease of parsing, the outputs are in `JSON` format.
+2. We use `json_processor.py` to parse the results and extract **bandwidth**, **IOPS** and **latency** stats for different workload combinations.
 
 <h2>Results & Analyses</h2>
 
