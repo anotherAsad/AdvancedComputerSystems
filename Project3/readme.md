@@ -78,17 +78,16 @@ _Table of statistics for read-vs-write ratio of 0:100_
 _Table of statistics for read-vs-write ratio of 50:50_
 ![graph](./Table_RW_50_50.PNG)
 
-- The case of 50% random reads and 50% random writes performs poorly for larger queue sizes. From the online benchmarks, this also seems like an expected behavior (deep queue mixed read/writes are show lower throughput than only reads and only writes). But I have no good guesses as to why. I can only speculate that this is because of some finer internal detail of the flash controller architecture. Mixed read writes with large queues may cause excessive mode switching inside the SSD, which the SSD controller might not be very good at.
-
-- For short queue sizes, this case has similar bandwidth numbers for the write only case. 
+- The case of 50% reads and 50% writes performs noticeably than both the 100% cases above.
 - All other observations from Case I still apply.
 
-<h3> Case IV: Results for R/W Ratio of 75:25</h3>
+<h3> Case IV: Results for R/W Ratio of 70:30</h3>
 
-_Table of statistics for read-vs-write ratio of 75:25_
+_Table of statistics for read-vs-write ratio of 70:30_
 ![graph](./Table_RW_70_30.PNG)
 
-- For the deep queue sizes (256, 1024), this case is almost similar to the Case III. For shorter queues, this case tends towards a read-only like behavior.
+- This case is very similar to Case III, especially for deeper queue sizes.
+- All other observations from Case I still apply.
 
 <h2>Observations</h2>
 
