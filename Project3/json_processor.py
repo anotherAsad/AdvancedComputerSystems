@@ -26,8 +26,8 @@ for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 	print(f"**R/W ratio: {rw.replace('_', ':')}**")
 	print("====================")
 	# Try to make an MD table
-	print("|Access Size | Queue Depth | Bandwidth | IOPS | Latency |")
-	print("|------------|-------------|-----------|------|---------|")
+	print("|Access Size | Queue Depth |=>| Bandwidth | IOPS | Latency |")
+	print("|------------|-------------|--|-----------|------|---------|")
 
 	for bsize in [4, 16, 32, 128]:											# block_size_in_KiB
 		for qlen in [4, 8, 32, 256, 1024]:									# total target_queue_len
@@ -37,10 +37,10 @@ for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 
 			[bw_kb, iops, lat_ms] = extract_stats(data["jobs"])
 
-			print(f"|{bsize:3}k | {qlen:4} ", end="  |  ")
+			print(f"|{bsize:3}k | {qlen:4} ", end=" |=>| ")
 			print(f"{bw_kb/1000:7.2f} MB/sec | {iops/1000:6.2f} k | {lat_ms:8.2f} ms|")
 		
-		print("|------------|-------------|-----------|------|---------|")
+		print("|Access Size | ~ ~ |=>| Bandwidth | IOPS | Latency |")
 	print("\n")
 
 
