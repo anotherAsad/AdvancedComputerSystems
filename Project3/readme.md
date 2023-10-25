@@ -68,7 +68,7 @@ In order to efficiently gather stats for all the required cases of **read-write 
 
 1. Create jobs with various read-write loads. Done by `jobfile_maker.py`
 2. Iteratively call `fio` command-line utility for all the required **read-write ratios**, **queue lengths** and **access sizes**. This is done by `command_iterator.py`. **fio**'s default output is in human-readable text format, which - while easy to read -  can be quite cumbersome to manually extract information from. Fortunately, **fio** can also emit the results in `JSON` format which can be easily parsed to get required information.
-3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters. Done by `json_processor.py`.
+3. Process the `JSON` output files to extract **bandwidth**, **IOPS** and **latency** for the above parameters. THis is done by `json_processor.py`.
 
 The format bash of command executed in `command_iterator.py` is given below. This one perfomrs read-only test with IO blocks of 4 KiB and target queue length of 16:<br>
 ```bash
@@ -77,59 +77,49 @@ sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k
 
 <h2>Results & Analyses</h2>
 
-This section summarizes with the results of the **fio** experiments extracted via `json_processor.py`.
+This section summarizes with the results of the **fio** experiments extracted via `json_processor.py`. The results are categorized according to read-write ratios.
 
-<h3> R/W Ratio of 100:0</h3>
+<h3> Results for R/W Ratio of 100:0</h3>
 
-**R/W ratio: 100:0**
-====================
-
-_Table of statistics for read-vs-write ratio of 100:0_:
+_Table of statistics for read-vs-write ratio of 100:0_
 ![graph](./Table_RW_100_0.PNG)
 
-- script output screenshots
-- Comments
+From the above table, we observe that
+- The relationship between IOPS and throughput (called bandwidth in context of **fio**) agrees with the theory, i.e., $Bandwidth = IOPS * BlockSize$.
+- [*] Increase in queue length corresponds with increase in bandwidth (and also IOPS) along with latency. This is in line with the queuing theory: Higher queue length means better server utilization, which allows the queue server to achieve a higher fraction of maximum bandwidth. However, it also increases latency due to queue width $T_q$.
+- Larger data access sizes result in higher bandwidth
 
-<h3> R/W Ratio of 50:50</h3>
+<h3> Results for R/W Ratio of 50:50</h3>
 
-**R/W ratio: 50:50**
-====================
-
-_Table of statistics for read-vs-write ratio of 50:50_:
+_Table of statistics for read-vs-write ratio of 50:50_
 ![graph](./Table_RW_50_50.PNG)
 
 - script output screenshots
 - Comments
 
-<h3> R/W Ratio of 75:25</h3>
+<h3> Results for R/W Ratio of 75:25</h3>
 
-**R/W ratio: 75:25**
-====================
-
-_Table of statistics for read-vs-write ratio of 75:25_:
+_Table of statistics for read-vs-write ratio of 75:25_
 ![graph](./Table_RW_75_25.PNG)
 
 - script output screenshots
 - Comments
 
-<h3> R/W Ratio of 0:100</h3>
+<h3> Results for R/W Ratio of 0:100</h3>
 
-**R/W ratio: 0:100**
-====================
-
-_Table of statistics for read-vs-write ratio of 0:100_:
+_Table of statistics for read-vs-write ratio of 0:100_
 ![graph](./Table_RW_0_100.PNG)
 
 - script output screenshots
 - Comments
 
-Prelim conclusion and analysis
+<h3>Observations</h3>
 
-Increasing queue length increases server utilization $µ$, which makes higher bandwidth possible
+Increasing queue length increases server utilization $µ$, which makes higher throughput possible
 
 1. Graph for one case: (queue length and BW on x-axis, Latency on y-axis)
 
-2. Graph for one case: (IOPS, Blocksize and Bandwidth)
+2. Graph for one case: (IOPS, Blocksize and throughput)
 
 _Table of execution time of various optimization texhniques under different matrix sizes_:
 ![graph](./float_table.PNG)
