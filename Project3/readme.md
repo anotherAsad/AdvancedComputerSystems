@@ -83,32 +83,32 @@ This section summarizes with the results of the **fio** experiments extracted vi
 
 **R/W ratio: 100:0**
 ====================
-|Access Size | Queue Depth | BW (MB/sec) | IOPS | Latency |
-|------------|-------------|-------------|------|---------|
-|Access Size:   4k | Queue Depth:    4  |  BW:  223.96 MB/sec, iops:  55.99 k, lat:    70.22 ms|
-|Access Size:   4k | Queue Depth:    8  |  BW:  422.39 MB/sec, iops: 105.60 k, lat:    74.84 ms|
-|Access Size:   4k | Queue Depth:   32  |  BW:  980.92 MB/sec, iops: 245.23 k, lat:   129.51 ms|
-|Access Size:   4k | Queue Depth:  256  |  BW:  940.13 MB/sec, iops: 235.03 k, lat:  1086.15 ms|
-|Access Size:   4k | Queue Depth: 1024  |  BW: 1126.36 MB/sec, iops: 281.59 k, lat:  3624.95 ms|
--------------------------------------------------------------------------------------------------
-|Access Size:  16k | Queue Depth:    4  |  BW:  597.83 MB/sec, iops:  37.36 k, lat:   105.53 ms|
-|Access Size:  16k | Queue Depth:    8  |  BW: 1046.59 MB/sec, iops:  65.41 k, lat:   121.02 ms|
-|Access Size:  16k | Queue Depth:   32  |  BW: 1920.58 MB/sec, iops: 120.04 k, lat:   264.08 ms|
-|Access Size:  16k | Queue Depth:  256  |  BW: 1788.40 MB/sec, iops: 111.78 k, lat:  2280.54 ms|
-|Access Size:  16k | Queue Depth: 1024  |  BW: 1963.97 MB/sec, iops: 122.75 k, lat:  8267.64 ms|
--------------------------------------------------------------------------------------------------
-|Access Size:  32k | Queue Depth:    4  |  BW:  913.15 MB/sec, iops:  28.54 k, lat:   138.95 ms|
-|Access Size:  32k | Queue Depth:    8  |  BW: 1479.00 MB/sec, iops:  46.22 k, lat:   171.76 ms|
-|Access Size:  32k | Queue Depth:   32  |  BW: 1854.31 MB/sec, iops:  57.95 k, lat:   548.22 ms|
-|Access Size:  32k | Queue Depth:  256  |  BW: 2003.23 MB/sec, iops:  62.60 k, lat:  4053.12 ms|
-|Access Size:  32k | Queue Depth: 1024  |  BW: 2261.17 MB/sec, iops:  70.66 k, lat: 14195.38 ms|
--------------------------------------------------------------------------------------------------
-|Access Size: 128k | Queue Depth:    4  |  BW: 1906.54 MB/sec, iops:  14.89 k, lat:   264.09 ms|
-|Access Size: 128k | Queue Depth:    8  |  BW: 2402.24 MB/sec, iops:  18.77 k, lat:   424.10 ms|
-|Access Size: 128k | Queue Depth:   32  |  BW: 2585.89 MB/sec, iops:  20.20 k, lat:  1571.53 ms|
-|Access Size: 128k | Queue Depth:  256  |  BW: 2398.51 MB/sec, iops:  18.74 k, lat: 13323.49 ms|
-|Access Size: 128k | Queue Depth: 1024  |  BW: 2470.90 MB/sec, iops:  19.30 k, lat: 50564.85 ms|
--------------------------------------------------------------------------------------------------
+|Access Size | Queue Depth | Bandwidth | IOPS | Latency |
+|------------|-------------|-----------|------|---------|
+|  4k |    4   |   223.96 MB/sec |  55.99 k |    70.22 ms|
+|  4k |    8   |   422.39 MB/sec | 105.60 k |    74.84 ms|
+|  4k |   32   |   980.92 MB/sec | 245.23 k |   129.51 ms|
+|  4k |  256   |   940.13 MB/sec | 235.03 k |  1086.15 ms|
+|  4k | 1024   |  1126.36 MB/sec | 281.59 k |  3624.95 ms|
+|------------|-------------|-----------|------|---------|
+| 16k |    4   |   597.83 MB/sec |  37.36 k |   105.53 ms|
+| 16k |    8   |  1046.59 MB/sec |  65.41 k |   121.02 ms|
+| 16k |   32   |  1920.58 MB/sec | 120.04 k |   264.08 ms|
+| 16k |  256   |  1788.40 MB/sec | 111.78 k |  2280.54 ms|
+| 16k | 1024   |  1963.97 MB/sec | 122.75 k |  8267.64 ms|
+|------------|-------------|-----------|------|---------|
+| 32k |    4   |   913.15 MB/sec |  28.54 k |   138.95 ms|
+| 32k |    8   |  1479.00 MB/sec |  46.22 k |   171.76 ms|
+| 32k |   32   |  1854.31 MB/sec |  57.95 k |   548.22 ms|
+| 32k |  256   |  2003.23 MB/sec |  62.60 k |  4053.12 ms|
+| 32k | 1024   |  2261.17 MB/sec |  70.66 k | 14195.38 ms|
+|------------|-------------|-----------|------|---------|
+|128k |    4   |  1906.54 MB/sec |  14.89 k |   264.09 ms|
+|128k |    8   |  2402.24 MB/sec |  18.77 k |   424.10 ms|
+|128k |   32   |  2585.89 MB/sec |  20.20 k |  1571.53 ms|
+|128k |  256   |  2398.51 MB/sec |  18.74 k | 13323.49 ms|
+|128k | 1024   |  2470.90 MB/sec |  19.30 k | 50564.85 ms|
+|------------|-------------|-----------|------|---------|
 
 
 - script output screenshots
