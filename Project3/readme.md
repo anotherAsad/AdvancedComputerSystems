@@ -82,37 +82,33 @@ sudo fio --output=outfile_blk4k_qlen16_rw100_0.json --output-format=json --bs=4k
 
 This section summarizes with the results of the **fio** experiments extracted via `json_processor.py`. The results are categorized according to read-write ratios.
 
-<h3> Results for R/W Ratio of 100:0</h3>
+<h3> Case I: Results for R/W Ratio of 100:0</h3>
 
 _Table of statistics for read-vs-write ratio of 100:0_
 ![graph](./Table_RW_100_0.PNG)
 
-From the above table, we observe that
-
 - The relationship between IOPS and throughput (called bandwidth in context of **fio**) agrees with the theory, i.e., $Bandwidth = IOPS * SizeOfDataAccess$.
 - [*] Increase in queue length corresponds with increase in bandwidth (and also IOPS) along with latency. This is in line with the queuing theory: Higher queue length means better server utilization, which allows the queue server to achieve a higher fraction of maximum bandwidth. However, it also increases latency due to queue width $T_q$.
-- Larger data access sizes result in higher bandwidth. This is because _(a)_ larger contiguous data accesses inside a NAND page have the same access latency as smaller chunks of data, i.e., internally, IOPS are the limiting factor, _(b)_ sequential accesses are faster inside an SSD and can be achieved with lesser number of read/write commands, _(c)_ Larger access sizes mean lesser number of total IOs, while service time of a single IO is more or less the same (limited by transfer or external bandwidth of the NVMe interconnect).
+- Larger data access sizes result in higher bandwidth. This is because <br>_(a)_ larger contiguous data accesses inside a NAND page have the same access latency as smaller chunks of data, i.e., internally, IOPS are the limiting factor, <br>_(b)_ sequential accesses are faster inside an SSD and can be achieved with lesser number of read/write commands, <br>_(c)_ Larger access sizes mean lesser number of total IOs, while service time of a single IO is more or less the same (limited by transfer or external bandwidth of the NVMe interconnect).
 - Larger data access sizes often result in lower IOPS. But since it also decreases the access time for a single IO, the net effect is that of bandwidth increase.
 - Larger data access sizes correspond with higher latency. This is probably because of the strain of maximum external transfer bandwidth of the NVMe due to more data being moved around per IO.
 
-<h3> Results for R/W Ratio of 0:100</h3>
+<h3> Case II: Results for R/W Ratio of 0:100</h3>
 
 _Table of statistics for read-vs-write ratio of 0:100_
 ![graph](./Table_RW_0_100.PNG)
 
-- script output screenshots
-- Comments
+- As opposed to the case of 100% reads, the case of 100% writes is surprisingly faster for lower queue sizes and lower data access sizes. This seemed an odd result at first, but I have verified it against online benchmarks (<a href=https://ssd.userbenchmark.com/SpeedTest/358656/KXG50ZNV256G-NVMe-TOSHIBA-256GB>).<br>There is a good explanation for this behavior, though. We know that, at the level of a NAND flash die, the write operation is very expensive: all writes must erase a whole block and re-write it again. However, to cirvumvent this issue, SSDs usually have large write buffers, which accumulate writes before flushing. And since a write is only uni-directional from the perspective of the rest of the system, write-bandwidth can actually appear faster than read-bandwidth for small access sizes. For larger access sizes, the read-bandwidth starts to win again, since the afore-mentioned write buffer gets filled more often.
+- All the other observations are along the lines of Case I.
 
-<h3> Results for R/W Ratio of 50:50</h3>
+<h3> Case III: Results for R/W Ratio of 50:50</h3>
 
 _Table of statistics for read-vs-write ratio of 50:50_
 ![graph](./Table_RW_50_50.PNG)
 
-From the above table, we observe that
+The case of 50% random reads and 50% random writes performs poorly for larger queue sizes. This is also an expected behavior, however, I have no good guesses as to why. I can only speculate that mixed read writes with large
 
-- As opposed to the case of 100% reads, the equal read write distribution results in lower bandwidth
-
-<h3> Results for R/W Ratio of 75:25</h3>
+<h3> Case IV: Results for R/W Ratio of 75:25</h3>
 
 _Table of statistics for read-vs-write ratio of 75:25_
 ![graph](./Table_RW_75_25.PNG)
@@ -122,7 +118,7 @@ _Table of statistics for read-vs-write ratio of 75:25_
 
 <h3>Observations</h3>
 
-Increasing queue length increases server utilization $µ$, which makes higher throughput possible
+Increasing queue length increases server utilization $µ$, which makes higher throughput possible.
 
 1. Graph for one case: (queue length and BW on x-axis, Latency on y-axis)
 
