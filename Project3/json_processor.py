@@ -27,6 +27,7 @@ for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 	print("====================")
 
 	for bsize in [4, 16, 32, 128]:											# block_size_in_KiB
+		print(f"\nData access size: {bsize}KB")
 		# Try to make an MD table
 		print("|Access Size | Queue Depth |=>| Bandwidth | IOPS | Latency |")
 		print("|------------|-------------|--|-----------|------|---------|")
@@ -40,8 +41,7 @@ for rw in ["100_0"]:			#, "50_50", "75_25", "0_100"]:					# rw_ratios
 
 			print(f"|{bsize:3}k | {qlen:4} ", end=" |=>| ")
 			print(f"{bw_kb/1000:7.2f} MB/sec | {iops/1000:6.2f} k | {lat_ms:8.2f} ms|")
-		
-		print("<br>")
+
 	print("\n")
 
 
