@@ -81,8 +81,8 @@ This section summarizes with the results of the **fio** experiments extracted vi
 
 <h3> R/W Ratio of 100:0</h3>
 
-*** R/W ratio: 100:0 ***
-========================
+**R/W ratio: 100:0**
+====================
 Access Size:   4k | Queue Depth:    4  ||  BW:  223.96 MB/sec, iops:  55.99 k, lat:    70.22 ms
 Access Size:   4k | Queue Depth:    8  ||  BW:  422.39 MB/sec, iops: 105.60 k, lat:    74.84 ms
 Access Size:   4k | Queue Depth:   32  ||  BW:  980.92 MB/sec, iops: 245.23 k, lat:   129.51 ms
