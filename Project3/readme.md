@@ -95,8 +95,10 @@ From the above experiments and there results, we can make a few salient observat
 
 1. Increasing queue length increases server utilization $µ$, which makes higher throughput possible. So the relationship between throughput and latency is also seen here. The two graphs below illustrate this.
 
+_Bandwidth vs. Latency:_
 ![graph](./Bandwidth_vs_Latency.png)
 
+_Queue Length vs. Latency:_
 ![graph](./Queue_Length_vs_Latency.png)
 
 
