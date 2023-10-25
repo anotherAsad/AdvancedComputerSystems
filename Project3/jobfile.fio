@@ -1,26 +1,12 @@
 ; -- start job file --
-[global]
-ioengine=libaio
-;iodepth=16
-;bs=4k
-numjobs=1
-direct=1					; Avoid kernel caching.
-fsync=0
-filename=/dev/nvme0n1p5
-
-[j1]
-rw=randwrite
-size=128m
-
-[j2]
-rw=randwrite
-size=128m
-
-[j3]
-rw=randwrite
-size=128m
-
-[j4]
-rw=randwrite
-size=128m
+[Job1]
+ioengine=libaio             ; use the standard linux async IO library
+;iodepth=32                 ; Target queue depth to be maintained. Impacts bandwidth. 
+;bs=4k                      ; Block size is the unit of IO to be read or written, i.e., the data access size.
+numjobs=1                   ; !! Misleading. Number of identical processes to be spawned for each job.  
+direct=1                    ; Avoid kernel caching for disk IOs.
+fsync=0                     ; Do not issue fsync after every access. Setting it to 1 drastically diminishes IOPS and BW.
+filename=/dev/nvme0n1p5     ; Name of the target drive for test
+rw=randrw	                ; Type of access pattern. Can be randwrite, randread, randrw and all their sequential counter parts
+size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
 ; -- end job file --

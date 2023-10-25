@@ -112,7 +112,7 @@ _Table of statistics for read-vs-write ratio of 50:50_
 <h3> Case IV: Results for R/W Ratio of 75:25</h3>
 
 _Table of statistics for read-vs-write ratio of 75:25_
-![graph](./Table_RW_75_25.PNG)
+![graph](./Table_RW_70_30.PNG)
 
 - For the deep queue sizes (256, 1024), this case is almost similar to the Case III. For shorter queues, this case tends towards a read-only like behavior.
 
@@ -120,16 +120,18 @@ _Table of statistics for read-vs-write ratio of 75:25_
 
 From the above experiments and there results, we can make a few salient observations:
 
-1. Increasing queue length increases server utilization $µ$, which makes higher throughput possible. So the relationship between throughput and latency is also seen here.
+1. Increasing queue length increases server utilization $µ$, which makes higher throughput possible. So the relationship between throughput and latency is also seen here. The two graphs below illustrate this.
 
-![graph](./chart1.png)
+![graph](./Bandwidth(MB_sec) vs Latency(ms).png)
+
+![graph](./Queue Length vs. Latency (ms).png)
 
 
 2. For smaller data access sizes, increasing queue length tends to increase IOPS (at least for some steps). But for larger data access sizes, IOPS do not change much with the queue length. This is explainable, since larger data access sizes tend to saturate the external bandwidth pretty quickly, limiting the IOPS to the external bandwidth.<br> This explains why IOPS are used by SSD vendors to demonstrate throughput for small data access sizes: It shows how fast the internal NAND architecture can be in the best of cases. However, since the external bandwidth becomes the limiting factor for bigger data access sizes, it is practical to report the maximum possible data transfer rate in MB/sec for large data access sizes.
 
 This relationship is explored in the following graph which plots queue length against IOPS (for the case of 100% writes). As can be seen, IOPS stay constant across multiple queue lengths for the data access size of 128K, pointing to a transfer bandwidth saturation. 
 
-![graph](./chart2.png)
+![graph](./Queue Length vs IOPS (x1K).png)
 
 <h2>Conclusion</h2>
 From this project, the trade-off between throughput and latency is reinforced again. We also see the significance of data-access size and queue-length in SSD performance, and the reasons why they could influence throughput. We also see that, although the individual physical read/write operations are very slow inside an SSD, the practice of parallelising elements inside an SSD allows for such high theoretical bandwidths that it may even be limited by the external bandwidth.
