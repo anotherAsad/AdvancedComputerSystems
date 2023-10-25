@@ -89,16 +89,14 @@ _Table of statistics for read-vs-write ratio of 100:0_
 
 - The relationship between IOPS and throughput (called bandwidth in context of **fio**) agrees with the theory, i.e., $Bandwidth = IOPS * SizeOfDataAccess$.
 - [*] Increase in queue length corresponds with increase in bandwidth (and also IOPS) along with latency. This is in line with the queuing theory: Higher queue length means better server utilization, which allows the queue server to achieve a higher fraction of maximum bandwidth. However, it also increases latency due to queue width $T_q$.
-- Larger data access sizes result in higher bandwidth. This is because <br>_(a)_ larger contiguous data accesses inside a NAND page have the same access latency as smaller chunks of data, i.e., internally, IOPS are the limiting factor, <br>_(b)_ sequential accesses are faster inside an SSD and can be achieved with lesser number of read/write commands, <br>_(c)_ Larger access sizes mean lesser number of total IOs, while service time of a single IO is more or less the same (limited by transfer or external bandwidth of the NVMe interconnect).
-- Larger data access sizes often result in lower IOPS. But since it also decreases the access time for a single IO, the net effect is that of bandwidth increase.
-- Larger data access sizes correspond with higher latency. This is probably because of the strain of maximum external transfer bandwidth of the NVMe due to more data being moved around per IO.
+- Larger data access sizes result in higher bandwidth, however the increase in bandwidth is usually not proportional to the increase in data access size. This is because larger data access sizes put a strain on the interconnect, as there is more data to be moved around. So in this case, the interconnect bandwidth at the junction of the NVMe interface, and the device, becomes the bottleneck.<br> To illustrate, if we have infinite interconnect or external bandwidth, doubling data access size should double bandwidth because the IOPS would remain the same (up until the access size is less than NAND page size). But in the case of limited external bandwidth, IOPS actually go down with increase in data access size, which results in a less-than-proportional increase in the bandwidth.
 
 <h3> Case II: Results for R/W Ratio of 0:100</h3>
 
 _Table of statistics for read-vs-write ratio of 0:100_
 ![graph](./Table_RW_0_100.PNG)
 
-- As opposed to the case of 100% reads, the case of 100% writes is surprisingly faster for lower queue sizes and lower data access sizes. This seemed an odd result at first, but I have verified it against online benchmarks (<a href=https://ssd.userbenchmark.com/SpeedTest/358656/KXG50ZNV256G-NVMe-TOSHIBA-256GB>).<br>There is a good explanation for this behavior, though. We know that, at the level of a NAND flash die, the write operation is very expensive: all writes must erase a whole block and re-write it again. However, to cirvumvent this issue, SSDs usually have large write buffers, which accumulate writes before flushing. And since a write is only uni-directional from the perspective of the rest of the system, write-bandwidth can actually appear faster than read-bandwidth for small access sizes. For larger access sizes, the read-bandwidth starts to win again, since the afore-mentioned write buffer gets filled more often.
+- As opposed to the case of 100% reads, the case of 100% writes is surprisingly faster for lower queue sizes and lower data access sizes. This seemed an odd result at first, but I have verified it against online benchmarks [Link text](https://ssd.userbenchmark.com/SpeedTest/358656/KXG50ZNV256G-NVMe-TOSHIBA-256GB).<br>There is a good explanation for this behavior, though. We know that, at the level of a NAND flash die, the write operation is very expensive: all writes must erase a whole block and re-write it again. However, to cirvumvent this issue, SSDs usually have large write buffers, which accumulate writes before flushing. And since a write is only uni-directional from the perspective of the rest of the system, write-bandwidth can actually appear faster than read-bandwidth for small access sizes. For larger access sizes, the read-bandwidth starts to win again, since the afore-mentioned write buffer gets filled more often.
 - All the other observations are along the lines of Case I.
 
 <h3> Case III: Results for R/W Ratio of 50:50</h3>
@@ -106,36 +104,32 @@ _Table of statistics for read-vs-write ratio of 0:100_
 _Table of statistics for read-vs-write ratio of 50:50_
 ![graph](./Table_RW_50_50.PNG)
 
-The case of 50% random reads and 50% random writes performs poorly for larger queue sizes. This is also an expected behavior, however, I have no good guesses as to why. I can only speculate that mixed read writes with large
+- The case of 50% random reads and 50% random writes performs poorly for larger queue sizes. From the online benchmarks, this also seems like an expected behavior (deep queue mixed read/writes are show lower throughput than only reads and only writes). But I have no good guesses as to why. I can only speculate that this is because of some finer internal detail of the flash controller architecture. Mixed read writes with large queues may cause excessive mode switching inside the SSD, which the SSD controller might not be very good at.
+
+- For short queue sizes, this case has similar bandwidth numbers for the write only case. 
+- All other observations from Case I still apply.
 
 <h3> Case IV: Results for R/W Ratio of 75:25</h3>
 
 _Table of statistics for read-vs-write ratio of 75:25_
 ![graph](./Table_RW_75_25.PNG)
 
-- script output screenshots
-- Comments
+- For the deep queue sizes (256, 1024), this case is almost similar to the Case III. For shorter queues, this case tends towards a read-only like behavior.
 
-<h3>Observations</h3>
+<h2>Observations and Conclusion</h2>
 
-Increasing queue length increases server utilization $µ$, which makes higher throughput possible.
+From the above experiments and there results, we can make a few salient observations:
 
-1. Graph for one case: (queue length and BW on x-axis, Latency on y-axis)
+1. Increasing queue length increases server utilization $µ$, which makes higher throughput possible. So the relationship between throughput and latency is also seen here.
 
-2. Graph for one case: (IOPS, Blocksize and throughput)
+![graph](./chart1.PNG)
 
-_Table of execution time of various optimization texhniques under different matrix sizes_:
-![graph](./float_table.PNG)
 
-_Comparison of execution time in seconds for various optimization techniques_:
-![graph](./float_results.png)
+2. For smaller data access sizes, increasing queue length tends to increase IOPS. But for larger data access sizes, IOPS do not change much with the queue length. This is explainable, since larger data access sizes tend to saturate the external bandwidth pretty quickly, limiting the IOPS to the external bandwidth.<br> This explains why IOPS are used by SSD vendors to demonstrate throughput for small data access sizes: It shows how fast the internal NAND architecture can be in the best of cases. However, since the external bandwidth becomes the limiting factor for bigger data access sizes, it is practical to report the maximum possible data transfer rate in MB/sec.
 
-<h2>Conclusion</h2>
+This relationship is explored in the following graph which plots queue length against IOPS (for the case of 100% writes). As can be seen, IOPS stay constant across multiple queue lengths for the data access size of 128K, pointing to a transfer bandwidth saturation. 
 
-keywords: `NVMe device`, `comparison with intel (targets very low latency)`, `BW/lat relation seen`, `When to use IOPS`
+![graph](./chart2.PNG)
 
-- When optimizing a task, we must first identify the bottle-neck in the execution. Failing to resolve the bottle-neck may cause other unrelated optimizations to not bear any effect in speeding up the execution.
-- Conversely, resolving bottle-necks in order of their significance can give us iteratively better implementations.
-- Moreover, multiple optimizations targetting same bottleneck may not result in better performance, because the bottleneck might have shifted elsewhere (e.g. from memory to compute).
-- When parallelizing an implementation, one must be careful about the atomicity of access. If the parallel parts of the program share data, mutexes and semaphores must be used to avoid race conditions.
-- In order to reap the benefits of instruction-level parallelism, it is important that the application not be memory-bound. Therefore, the program should be structured to keep the processor occupied by providing high memory-access throughput.
+
+From this project, the trade-off between throughput and latency is reinforced again. We also see the significance of data-access size and queue-length in SSD performance, and the reasons why they could influence throughput. We also see that, although the individual physical read/write operations are very slow inside an SSD, the practice of parallelising elements inside an SSD allows for such high theoretical bandwidths that it may even be limited by the external bandwidth.

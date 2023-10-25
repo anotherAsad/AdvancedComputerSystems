@@ -20,9 +20,8 @@ def extract_stats(job_list):
 
 	return [bw_kb, iops, lat_ms]
 	
-	
 		
-for rw in ["100_0", "50_50", "75_25", "0_100"]:					# rw_ratios
+for rw in ["100_0"]:	#, "50_50", "75_25", "0_100"]:					# rw_ratios
 	print(f"*** R/W ratio: {rw.replace('_', ':')} ***")
 	print(f"========================")
 	for bsize in [4, 16, 32, 128]:											# block_size_in_KiB
@@ -39,5 +38,3 @@ for rw in ["100_0", "50_50", "75_25", "0_100"]:					# rw_ratios
 			#print(f"BW: {bw_kb/1000:7.2f} MB/sec, iops: {iops/1000:6.2f} k, lat: {lat_ms:8.2f} ms")
 		
 	print("\n")
-
-
