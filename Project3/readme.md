@@ -50,7 +50,7 @@ sudo fio --output-format=json --output=../out_dir/outfile.json --bs=4k --iodepth
 The assignment calls for measuring the stats for various combinations of workloads. In order to efficiently collect these stats we use a few python scripts:
 
 1. We use `command_iterator.py` to iterate of **data access sizes**, **target queue lengths** and **read/write ratios**, and issue fio commands that write their results to the `out_dir` directory. For ease of parsing, the outputs are in `JSON` format.
-2. We use `json_processor.py` to parse the results and extract **bandwidth**, **IOPS** and **latency** stats for different workload combinations. The extracted scripts are written to a **CSV file** for tabulation and graphing of results.
+2. We use `json_processor.py` to parse the results and extract **bandwidth**, **IOPS** and **latency** stats for different workload combinations. The extracted results are written to a **CSV file** for tabulation and graphing of results.
 
 <h2>Results & Analyses</h2>
 
@@ -70,7 +70,7 @@ _Table of statistics for read-vs-write ratio of 100:0_
 _Table of statistics for read-vs-write ratio of 0:100_
 ![graph](./Table_RW_0_100.PNG)
 
-- As opposed to the case of 100% reads, the case of 100% writes is surprisingly faster for lower queue sizes and lower data access sizes. This seemed an odd result at first, but I have verified it against online benchmarks [Link text](https://ssd.userbenchmark.com/SpeedTest/358656/KXG50ZNV256G-NVMe-TOSHIBA-256GB).<br>There is a good explanation for this behavior, though. We know that, at the level of a NAND flash die, the write operation is very expensive: all writes must erase a whole block and re-write it again. However, to cirvumvent this issue, SSDs usually have large write buffers, which accumulate writes before flushing. And since a write is only uni-directional from the perspective of the rest of the system, write-bandwidth can actually appear faster than read-bandwidth for small access sizes. For larger access sizes, the read-bandwidth starts to win again, since the afore-mentioned write buffer gets filled more often.
+- As opposed to the case of 100% reads, the case of 100% writes is surprisingly faster for lower queue sizes and lower data access sizes. This seemed an odd result at first, but I have verified it against [online benchmarks](https://ssd.userbenchmark.com/SpeedTest/358656/KXG50ZNV256G-NVMe-TOSHIBA-256GB).<br>There is a good explanation for this behavior, though. We know that, at the level of a NAND flash die, the write operation is very expensive: all writes must erase a whole block and re-write it again. However, to cirvumvent this issue, SSDs usually have large write buffers, which accumulate writes before flushing. And since a write is only uni-directional from the perspective of the rest of the system, write-bandwidth can actually appear faster than read-bandwidth for small access sizes. For larger access sizes, the read-bandwidth starts to win again, since the afore-mentioned write buffer gets filled more often.
 - All the other observations are along the lines of Case I.
 
 <h3> Case III: Results for R/W Ratio of 50:50</h3>
@@ -102,9 +102,7 @@ _Queue Length vs. Latency:_
 ![graph](./Queue_Length_vs_Latency.png)
 
 
-2. For smaller data access sizes, increasing queue length tends to increase IOPS (at least for some steps). But for larger data access sizes, IOPS do not change much with the queue length. This is explainable, since larger data access sizes tend to saturate the external bandwidth pretty quickly, limiting the IOPS to the external bandwidth.<br> This explains why IOPS are used by SSD vendors to demonstrate throughput for small data access sizes: It shows how fast the internal NAND architecture can be in the best of cases. However, since the external bandwidth becomes the limiting factor for bigger data access sizes, it is practical to report the maximum possible data transfer rate in MB/sec for large data access sizes.
-
-This relationship is explored in the following graph which plots queue length against IOPS (for the case of 100% writes). As can be seen, IOPS stay constant across multiple queue lengths for the data access size of 128K, pointing to a transfer bandwidth saturation. 
+2. For smaller data access sizes, increasing queue length tends to increase IOPS (at least for some steps). But for larger data access sizes, IOPS do not change much with the queue length. This is explainable, since larger data access sizes tend to saturate the external bandwidth pretty quickly, limiting the IOPS to the external bandwidth.<br> This explains why IOPS are used by SSD vendors to demonstrate throughput for small data access sizes: It shows how fast the internal NAND architecture can be in the best of cases. However, since the external bandwidth becomes the limiting factor for bigger data access sizes, it is practical to report the maximum possible data transfer rate in MB/sec for large data access sizes.<br><br>This relationship is explored in the following graph which plots queue length against IOPS (for the case of 100% writes). As can be seen, IOPS stay constant across multiple queue lengths for the data access size of 128K, pointing to a transfer bandwidth saturation. 
 
 ![graph](./Queue_Length_vs_IOPS.png)
 
