@@ -5,7 +5,7 @@ Project 3 is intended to explore the behavior and capabilites of non-volatile st
 
 <h2>1. Experimental Setup</h2>
 
-keywords: `fio jobs`, `read-write load simulation`, `python scripts`, `JSON output`, `Queue length equivalence`
+keywords: `fio job description file`, `python scripts`, `JSON output`
 
 <h4>SSD under test:</h4>
 Toshiba KXG60ZNV256G - 256 GB NVMe SSD.<br>
@@ -15,6 +15,7 @@ Toshiba KXG60ZNV256G - 256 GB NVMe SSD.<br>
 
 The **fio** command-line utility can take a job description file as input. The job description file contains the params for the IO job to be carried out. Contents of the job description file used in this project are given below, We use this file to pass common parameters for all out tests:
 
+```
 ; -- start job file --
 [Job1]
 ioengine=libaio             ; use the standard linux async IO library
@@ -27,6 +28,7 @@ filename=/dev/nvme0n1p5     ; Name of the target drive for test
 rw=randrw	                ; Type of access pattern. Can be randwrite, randread, randrw and all their sequential counterparts
 size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
 ; -- end job file --
+```
 
 <h4>Command Format:</h4>
 
@@ -36,11 +38,11 @@ A bash command that invokes the fio utility is given below. All flags passed are
 sudo fio --output-format=json --output=../out_dir/outfile.json --bs=4k --iodepth=8 --rwmixread=50 jobfile.fio
 
 # Flag Description:
-# --output-format=json	|	Save output in JSON format. As opposed to simle text, JSON format can be easily parsed at result collection stage.
-# --bs=4k				|	Data access size for a single IO is 4K. Overrides the option in jobfile.fio
-# --iodepth=8			|	Target queue depth is 8
-# --rwmixread=50		|	Percentage of reads in total IOs
-# jobfile.fio			| 	Job description file used.
+# --output-format=json  |   Save output in JSON format. As opposed to simle text, JSON format can be easily parsed at result collection stage.
+# --bs=4k               |   Data access size for a single IO is 4K. Overrides the option in jobfile.fio
+# --iodepth=8           |   Target queue depth is 8
+# --rwmixread=50        |   Percentage of reads in total IOs
+# jobfile.fio           |   Job description file used.
 ```
 
 <h3>Stats Collection Overview</h3>
@@ -48,7 +50,7 @@ sudo fio --output-format=json --output=../out_dir/outfile.json --bs=4k --iodepth
 The assignment calls for measuring the stats for various combinations of workloads. In order to efficiently collect these stats we use a few python scripts:
 
 1. We use `command_iterator.py` to iterate of **data access sizes**, **target queue lengths** and **read/write ratios**, and issue fio commands that write their results to the `out_dir` directory. For ease of parsing, the outputs are in `JSON` format.
-2. We use `json_processor.py` to parse the results and extract **bandwidth**, **IOPS** and **latency** stats for different workload combinations.
+2. We use `json_processor.py` to parse the results and extract **bandwidth**, **IOPS** and **latency** stats for different workload combinations. The extracted scripts are written to a **CSV file** for tabulation and graphing of results.
 
 <h2>Results & Analyses</h2>
 
