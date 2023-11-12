@@ -80,12 +80,13 @@ double TimedExecution() {
 
 	/////////////////// EXECUTION RUN BEGINS ///////////////////
 	ClearResultMatrix();
-	
-	// Time the execution: Get Starting Timestamp
-	clock_gettime(CLOCK_MONOTONIC, &begin);
+
 	// Transpose Matrix 2 if Row Major Form is to be used.
 	if(exec_mode.RowMajorMat2)
 		TransposeMatrix2();
+	
+	// Time the execution: Get Starting Timestamp
+	clock_gettime(CLOCK_MONOTONIC, &begin);
 	// Initialize the Execution
 	ThreadScheduler(exec_mode.num_cores, exec_mode.tile_hlen, exec_mode.tile_vlen);
 	// Time the execution: Get Ending Timestamp
@@ -167,8 +168,8 @@ int ExecutionIterator(int ROW_COUNT, int COL_COUNT) {
 int main() {
 	double time_elapsed = 0.0;
 
-	int ROW_COUNT = 1024;
-	int COL_COUNT = 1024;
+	int ROW_COUNT = 3000;
+	int COL_COUNT = 3000;
 
 	mat1info.num_rows = 16*(ROW_COUNT/16);
 	mat1info.num_cols = 16*(COL_COUNT/16);
@@ -176,12 +177,12 @@ int main() {
 	mat2info.num_rows = 16*(COL_COUNT/16);
 	mat2info.num_cols = 16*(ROW_COUNT/16);
 
-	exec_mode.type = SHORT;
+	exec_mode.type = FLOAT;
 	exec_mode.RowMajorMat2 = 1;
 	exec_mode.avx = ENABLED;
 	exec_mode.num_cores = 1;
-	exec_mode.tile_hlen = mat1info.num_cols;
-	exec_mode.tile_vlen = mat1info.num_rows;
+	exec_mode.tile_hlen = 256;//mat1info.num_cols;
+	exec_mode.tile_vlen = 256;//mat1info.num_rows;
 
 	time_elapsed = TimedExecution();
 
