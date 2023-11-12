@@ -1,7 +1,46 @@
-<h1>Project 3</h1>
+<h1>Project 4</h1>
 
-Project 3 is intended to explore the behavior and capabilites of non-volatile storage devices. In this project we use the **fio** utility on Ubuntu, and try to acquire stats like **bandwidth**, **IOPS** and **latency** under work-loads with with varying **data access sizes**, **target queue lengths** and **read/write ratios**.
+Project 4 is the implementation of dictionary codec to enable compression and fast look-up/scan operations on a column of data with low cardinality.<br>
+We implement an N-ary tree to encode a given column, perform fast search and scan operations. We also implement compression techniques like delta and Huffman encoding to reduce main-memory and SSD footprint.<br>
+Due to our column specific analysis, our compressed, on-disk size of `405 MB` beats the **WinRAR's best compression** of `475 MB`.
 
+The project also makes use of multi-threading and SIMD to speed up the above stated operations.
+
+<h2>Optimizations Log</h2>
+Integer Compression:
+	Pre-Huffman delta encoding compressed size (Full file): 429,505,425 bytes
+	Post-Huffman delta encoding compressed size (Full File): 426,076,260 bytes
+	
+	Post-Huffman delta encoding compressed size (Full File | Idx only): 419,808,734 bytes
+
+Text Compression:
+	Non-delta estimate: (975773 uniques * 8 bytes average (including stop byte)): A little less than 7,806,184 bytes
+	string delta encoding size (< | included): 6,267,526 bytes
+		Delta Encoding Advantage (non-aggressive): 6,267,526/7,806,184 = 80.2%
+		Delta Encoding Advantage (mild : < merged, | removed): 
+	
+
+//////////////////
+Post-Huffman delta Integer + Uncompressed Text : 419,808,734 + 7,806,184 = 427614918
+Post-Huffman delta Integer + Delta mild Text : 419,808,734 + 7,806,184 = 427614918
+
+
+
+
+/////////////////
+Non-aggressive interleaved sequence: 	"<{1b.pop_cnt}{nb.seq}|{2b.idx_count}{4b.first_idx}{(2.9775 * idx)b.deltas}" Repeat
+
+mild dual-stream sequence:		"{0x80 | pop_cnt}{nb.seq}" Repeat
+					"{2b.idx_count}{4b.first_idx}{(2.9775 * idx)b.deltas}" Repeat
+
+
+
+////////////////
+
+Haven't implemented decompression in Python.
+If doing in C++:
+	Advise using non-delta encoding for text. (1+7 bytes.)
+	Advise decompressing side-by-side
 
 <h2>1. Experimental Setup</h2>
 
