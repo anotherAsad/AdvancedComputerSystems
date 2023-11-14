@@ -1,10 +1,12 @@
 <h1>Project 4</h1>
 
-Project 4 is the implementation of dictionary codec to enable compression and fast look-up/scan operations on a column of data with low cardinality.<br>
-We implement an N-ary tree to encode a given column, perform fast search and scan operations. We also implement compression techniques like delta and Huffman encoding to reduce main-memory and SSD footprint.<br>
-Due to our column specific analysis, our compressed, on-disk size of `405 MB` beats the **WinRAR's best compression** of `475 MB`.
+Project 4 is the implementation of dictionary codec, that enables operations like compression and fast look-up/scan on a column of data with low cardinality.<br>
 
-The project also makes use of multi-threading and SIMD to speed up the above stated operations.
+We implement an N-ary tree to aid encoding and search/scan operations on the given column. We also implement integer compression techniques like delta and Huffman encoding to reduce SSD footprint.<br>
+
+Due to some column specific optimizations, our on-disk size of the compressed file is`405 MB`, which beats the **WinRAR's best compression option** of `475 MB` by ~15%.
+
+The project also makes use of multi-threading and SIMD to speed up encoding and lookup operations respectively.
 
 <h2>Optimizations Log</h2>
 Integer Compression:
