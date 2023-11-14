@@ -47,6 +47,7 @@ keywords: `Integer compression`, `string compression`, `delta coding for strings
 A preliminary analysis of the compression techniques for the given column file was performed. The results, aided by an implementation of the tree structure in `python`, are given below.
 
 <h4>Column Details:</h4>
+
 ```
 Total number of elements: 139999654 (~133.5 Mega Entries)
 Unique elements: 975773 (~0.93 Mega Entries)
