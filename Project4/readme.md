@@ -83,6 +83,7 @@ The post compression file size matches expectations, since 534 MB *3/4 = 400.5 M
 
 
 <h4>Text Compression Details</h4>
+
 ```
 Size estimate of unique text : (975773 uniques * 8 B average): ~ 7,806,184 bytes = ~ 7.44 MB
 Size after string delta encoding: 6,267,526 bytes = ~5.97 MB
@@ -93,7 +94,7 @@ Delta Encoding Advantage: 6,267,526/7,806,184 = 80.2%
 
 Post-Huffman & delta encoding compressed size (Full File): 426,076,260 bytes = ~406 MB
 
-Which is $406 MB/1069 MB$ i.e. only $38%$ of the original file size.
+Which is $406 MB/1069 MB$ i.e. only $38\%$ of the original file size.
 
 <h3>Conclusion</h3>
 
@@ -102,7 +103,11 @@ As discussed, eliminating repetitions accounts for around 50% reduction. Compoun
 <h2>Code Overview</h2>
 keywords: `tree node`, `fast lookup`, `multi-threading for encoding`, `SIMD support for lookup`
 
-The code is primarily centered around a C++ calss
+The code is primarily centered around a C++ class called `treenode`, which represents a single tree node. The class has methods like `addElement` and `lookup`.
+
+The `addElement` method simply adds an element to the node, making a new node sequence if the element has not appeared before, or coalescing it with prior nodes if the element has appeared before. It naturally forks-off at the apropriate point if the element being added is unique, but shares a prefix (of any length) with prior elements.
+
+The `lookup` method searches the tree for a given sequence of characters, and returns a node that represents the last character of the sequence. This returned node can then be used for both **prefix scan** and **single element search**. For **single element search**, we simply 
 
 <h2>1. Experimental Setup</h2>
 
