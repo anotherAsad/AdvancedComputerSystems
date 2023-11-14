@@ -4,7 +4,7 @@ Project 4 is the implementation of dictionary codec, that enables operations lik
 
 We implement an N-ary tree to aid encoding and search/scan operations on the given column. We also implement integer compression techniques like delta and Huffman encoding to reduce SSD footprint.<br>
 
-Due to some optimizations considering low-cardinality columns, our on-disk size of the compressed file is`405 MB`, which beats the **WinRAR's best compression option** of `475 MB` by ~15%, it also boasts two methods for search/scan, one for extremely low lookup latency, and the other for small main memory footprint.
+Due to some optimizations considering low-cardinality columns, our on-disk size of the compressed file is`405 MB`, which beats the **WinRAR's best compression option** of `475 MB` by ~15%. It also boasts two methods for search/scan, one for extremely low lookup latency, and the other for small main memory footprint.
 
 The project also makes use of multi-threading and SIMD to speed up encoding and lookup operations respectively.
 
@@ -47,36 +47,46 @@ keywords: `Integer compression`, `string compression`, `delta coding for strings
 A preliminary analysis of the compression techniques for the given column file was performed. The results, aided by an implementation of the tree structure in `python`, are given below.
 
 <h4>Column Details:</h4>
-	Total number of elements: 139999654 (~133.5 Mega Entries)
-	Unique elements: 975773 (~0.93 Mega Entries)
-	Unique-to-Total ratio: 0.7 % or ~1/140
-	Average entry size: 8 characters
+```
+Total number of elements: 139999654 (~133.5 Mega Entries)
+Unique elements: 975773 (~0.93 Mega Entries)
+Unique-to-Total ratio: 0.7 % or ~1/140
+Average entry size: 8 characters
 
-	Size before compression:
-		1,120,173,090 bytes (~1,069 MB)
-	Best Theoretical size post compression (Repetition elimination only, assuming 4-byte ints):
-		975773*8 + 139999654*4 = 567,804,800 bytes (~541 MB), i.e., 50% of the original.
+Size before compression:
+	1,120,173,090 bytes (~1,069 MB)
+Best Theoretical size post compression (Repetition elimination only, assuming 4-byte ints):
+	975773*8 + 139999654*4 = 567,804,800 bytes (~541 MB), i.e., 50% of the original.
+```
 
 <h4>Integer Compression details</h4>
 
 We start with an uncompressed sequence of integers that represent indices of column elements. Originally, each integer occupies 4 bytes. After performing `Huffman & Delta encoding`, the integer sizes in the compressed sequence have following ratios:
-	16-bit Ints: ~ 2.4%
-	24-bit Ints: ~ 97.3%
-	32-bit Ints: ~ 0.22%
+
+```
+Post-compression size ratios:
+16-bit Ints: ~ 2.4%
+24-bit Ints: ~ 97.3%
+32-bit Ints: ~ 0.22%
+```
 
 This corresponds to an average of 2.975 bytes per integer in compressed stream, which should compress the all the integers by around 25%.
 
 Experimentally we see:
-	Size of all indices before compression = 139999654 * 4 = 5599998616 Bytes = ~ 534 MB. 
-	Post-Huffman & delta encoding compressed size (Indices only): 419,808,734 bytes = 400.36 MB.
+```
+Size of all indices before compression = 139999654 * 4 = 5599998616 Bytes = ~ 534 MB. 
+Post-Huffman & delta encoding compressed size (Indices only): 419,808,734 bytes = 400.36 MB.
+```
 
 The post compression file size matches expectations, since 534 MB *3/4 = 400.5 MB.
 
 
 <h4>Text Compression Details</h4>
-	Size estimate of unique text : (975773 uniques * 8 B average): ~ 7,806,184 bytes = ~ 7.44 MB
-	Size after string delta encoding: 6,267,526 bytes = ~5.97 MB
-	Delta Encoding Advantage: 6,267,526/7,806,184 = 80.2%
+```
+Size estimate of unique text : (975773 uniques * 8 B average): ~ 7,806,184 bytes = ~ 7.44 MB
+Size after string delta encoding: 6,267,526 bytes = ~5.97 MB
+Delta Encoding Advantage: 6,267,526/7,806,184 = 80.2%
+```
 
 <h4>Total Post Compression Size</h4>
 
