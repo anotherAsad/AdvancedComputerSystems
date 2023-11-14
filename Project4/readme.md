@@ -10,7 +10,7 @@ The project also makes use of multi-threading and SIMD to speed up encoding and 
 
 <h2>Design Strategies & Techniques Used</h2>
 
-keywords: `N-ary tree`, `prefix search`, `prototyping and analysis`, `Delta encoding`, `Huffman coding`
+keywords: `N-ary tree`, `prefix`, `prototyping and analysis`, `Delta encoding`, `Huffman coding`
 
 
 Considering that our target is to compress a low-cardinality column, with lots of elements that are either repeated or share a common prefix, a **tree-like** structure seems a natural choice. As opposed to hashes, trees have the added advantage of eleminating repetitions due to common prefix, and enabling natural prefix scans.<br>
@@ -24,55 +24,74 @@ If the node is terminal (i.e., represents the last character in a string), it al
 
 To illustrate, words "carmen" and "carpet" would be represented with 9 nodes in total, with the common prefix "car" saved only once. The node representing "r" would have two pointers - to "m" and "p" - for the non-simmilar parts of the words.
 
+This type of representation is especially amicable to the operation of prefix search, as will be seen later.
+
 <h3>Integer Compression</h3>
 
 For on-disk storage, we combined two integer compression techniques:
 
-1. **Delta compression**: Except for the first element, each element $c_i$ in the compressed integer sequence is expressed as the difference of the elements $a_i$ and $a_i-1$ in the original list. The first element of both the compressed and the original list is the same. Delta compression works well when the jumps between integers of a sequence are smaller than their absolute values, which could further aid the quality of compression by huffman coding.
+1. **Delta compression**: Except for the first element, each element $c_i$ in the compressed integer sequence is expressed as the difference of the elements $a_i$ and $a_{i-1}$ in the original list. The first element of both the compressed and the original list is the same. Delta compression works well when the jumps between integers of a sequence are smaller than their absolute values, which could further aid the quality of compression by huffman coding.
+
 2. **Huffman coding**: The original sequence stores integers in 32-bit unsigned format. With Huffman encoding enabled, we use variable sizes of integers to store the sequence elements. The MSbits of every integer in the compressed sequence correspond to its size: if the MSbit is `0`, it's a 23-bit integer stored in 3 bytes; if the MSbit is `1` then it's a 14-bit integer stored in 2 bytes (if the 2nd MSbit is `0`), or a 30-bit integer stores in 4 bytes (if 2nd MSbit is `1`).<br> Huffman coding adds some complexity to the decoding process, but this alone results in a **25 %** reduction in the size of the integer sequence.
 
 <h3>String Compression</h3>
-Apart from integer compression, we also use a variant of delta coding for string compression of the on-disk compressed file. Here, every word is represented in terms of its difference from the previous word: only the different part of the later word is store. A single character denoting the length of the difference is also stored in this technique.<br>To illustrate, let's say we save "carmen" and "carpet". In storage, they would look like: "carmen<3>pet", where <3> denotes that the last three characters of "carmen" have to be discarded, and the string "pet" has to be added to get the new word "carpet". This techniques is quite useful when we store the data in alphabetical order (which is naturally done if we traverse our tree in depth first order).
+Apart from integer compression, we also use a variant of delta coding for string compression of the on-disk compressed file. Here, every word is represented in terms of its difference from the previous word: only the different part of the later word is store. A single character denoting the length of the difference is also stored in this technique.
 
-To test the feasibility of our design decisions, a prototype in was first implemented in `python`. The analysis of different compression techniques used is given in the following section.
+To illustrate, let's say we save "carmen" and "carpet". In storage, they would look like: "carmen<3>pet", where <3> denotes that the last three characters of "carmen" have to be discarded, and the string "pet" has to be added to get the new word "carpet". This techniques is quite useful when we store the data in alphabetical order (which is naturally done if we traverse our tree in depth first order).<br>
 
-<h2>Prototype Analysis</h3>
+To test the feasibility of our design decisions, a prototype was first implemented in `python`. The analysis of different compression techniques used is given in the following section.
 
-<h2>Optimizations Log</h2>
-Integer Compression:
-	Pre-Huffman & delta encoding compressed size (Full file): 429,505,425 bytes
-	Post-Huffman & delta encoding compressed size (Full File): 426,076,260 bytes
-	
-	Post-Huffman delta encoding compressed size (Full File | Idx only): 419,808,734 bytes
+<h2>Analysis of compression techniques</h2>
+keywords: `Integer compression`, `string compression`, `delta coding for strings`, `on-disk compressed storage`
 
-Text Compression:
-	Non-delta estimate: (975773 uniques * 8 bytes average (including stop byte)): A little less than 7,806,184 bytes
-	string delta encoding size (< | included): 6,267,526 bytes
-		Delta Encoding Advantage (non-aggressive): 6,267,526/7,806,184 = 80.2%
-		Delta Encoding Advantage (mild : < merged, | removed): 
-	
+A preliminary analysis of the compression techniques for the given column file was performed. The results, aided by an implementation of the tree structure in `python`, are given below.
 
-//////////////////
-Post-Huffman delta Integer + Uncompressed Text : 419,808,734 + 7,806,184 = 427614918
-Post-Huffman delta Integer + Delta mild Text : 419,808,734 + 7,806,184 = 427614918
+<h4>Column Details:</h4>
+	Total number of elements: 139999654 (~133.5 Mega Entries)
+	Unique elements: 975773 (~0.93 Mega Entries)
+	Unique-to-Total ratio: 0.7 % or ~1/140
+	Average entry size: 8 characters
+
+	Size before compression:
+		1,120,173,090 bytes (~1,069 MB)
+	Best Theoretical size post compression (Repetition elimination only, assuming 4-byte ints):
+		975773*8 + 139999654*4 = 567,804,800 bytes (~541 MB), i.e., 50% of the original.
+
+<h4>Integer Compression details</h4>
+
+We start with an uncompressed sequence of integers that represent indices of column elements. Originally, each integer occupies 4 bytes. After performing `Huffman & Delta encoding`, the integer sizes in the compressed sequence have following ratios:
+	16-bit Ints: ~ 2.4%
+	24-bit Ints: ~ 97.3%
+	32-bit Ints: ~ 0.22%
+
+This corresponds to an average of 2.975 bytes per integer in compressed stream, which should compress the all the integers by around 25%.
+
+Experimentally we see:
+	Size of all indices before compression = 139999654 * 4 = 5599998616 Bytes = ~ 534 MB. 
+	Post-Huffman & delta encoding compressed size (Indices only): 419,808,734 bytes = 400.36 MB.
+
+The post compression file size matches expectations, since 534 MB *3/4 = 400.5 MB.
 
 
+<h4>Text Compression Details</h4>
+	Size estimate of unique text : (975773 uniques * 8 B average): ~ 7,806,184 bytes = ~ 7.44 MB
+	Size after string delta encoding: 6,267,526 bytes = ~5.97 MB
+	Delta Encoding Advantage: 6,267,526/7,806,184 = 80.2%
 
+<h4>Total Post Compression Size</h4>
 
-/////////////////
-Non-aggressive interleaved sequence: 	"<{1b.pop_cnt}{nb.seq}|{2b.idx_count}{4b.first_idx}{(2.9775 * idx)b.deltas}" Repeat
+Post-Huffman & delta encoding compressed size (Full File): 426,076,260 bytes = ~406 MB
 
-mild dual-stream sequence:		"{0x80 | pop_cnt}{nb.seq}" Repeat
-					"{2b.idx_count}{4b.first_idx}{(2.9775 * idx)b.deltas}" Repeat
+Which is $406 MB/1069 MB$ i.e. only $38%$ of the original file size.
 
+<h3>Conclusion</h3>
 
+As discussed, eliminating repetitions accounts for around 50% reduction. Compounding over that, integer compression can reduce the size by an additional **25%**. However, string delta compression only saves us around **1.5 MB**, which amounts to almost nothing in the grand scheme of things. So the in-memory size is around **534 MB**, and on-disk size is **406 MB**.
 
-////////////////
+<h2>Code Overview</h2>
+keywords: `tree node`, `fast lookup`, `multi-threading for encoding`, `SIMD support for lookup`
 
-Haven't implemented decompression in Python.
-If doing in C++:
-	Advise using non-delta encoding for text. (1+7 bytes.)
-	Advise decompressing side-by-side
+The code is primarily centered around a C++ calss
 
 <h2>1. Experimental Setup</h2>
 
