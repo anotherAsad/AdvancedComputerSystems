@@ -4,14 +4,42 @@ Project 4 is the implementation of dictionary codec, that enables operations lik
 
 We implement an N-ary tree to aid encoding and search/scan operations on the given column. We also implement integer compression techniques like delta and Huffman encoding to reduce SSD footprint.<br>
 
-Due to some column specific optimizations, our on-disk size of the compressed file is`405 MB`, which beats the **WinRAR's best compression option** of `475 MB` by ~15%.
+Due to some optimizations considering low-cardinality columns, our on-disk size of the compressed file is`405 MB`, which beats the **WinRAR's best compression option** of `475 MB` by ~15%, it also boasts two methods for search/scan, one for extremely low lookup latency, and the other for small main memory footprint.
 
 The project also makes use of multi-threading and SIMD to speed up encoding and lookup operations respectively.
 
+<h2>Design Strategies & Techniques Used</h2>
+
+keywords: `N-ary tree`, `prefix search`, `prototyping and analysis`, `Delta encoding`
+
+
+Considering that our target is to compress a low-cardinality column, with lots of elements that are either repeated or share a common prefix, a **tree-like** structure seems a natural choice. As opposed to hashes, trees have the added advantage of eleminating repetitions due to common prefix, and enabling natural prefix scans.<br>
+
+For simplicity, we have used a data-structure that extends an N-ary tree. This datastructure can be used for encoding, element search, prefix scan, and can be modularly extended to enable writing of the compressed column to disk, or a separate data structure.<br>
+
+<h3>Data Representation in the N-ary Tree</h3>
+
+In our data structure, every word is stored character-wise in the tree nodes. Every node in the tree stores a character, and has a set of pointers pointing to the next character of the word.<br>
+If the node is terminal (i.e., represents the last character in a string), it also stores a dynamic list of indices where the string appears in the uncompressed column. This way, repeating words are only represented once (with their different indices stored in a leaf node representing the last character). Words with common prefixes diverge at the first different character, and hence are also represented with as little repetition as possible.
+
+To illustrate, words "carmen" and "carpet" would be represented with 9 nodes in total, with the common prefix "car" saved only once. The node representing "r" would have two pointers - to "m" and "p" - for the non-simmilar parts of the words.
+
+<h3>Integer Compression</h3>
+
+For on-disk storage, we combined two integer compression techniques:
+
+1. **Delta compression**: Except for the first element, each element $c_i$ in the compressed integer sequence is expressed as the difference of the elements $a_i$ and $a_i-1$ in the original list. The first element of both the compressed and the original list is the same. Delta compression works well when the jumps between integers of a sequence are smaller than their absolute values.
+2. **Huffman coding**: The original sequence stores integers in 32-bit unsigned format. With Huffman encoding enabled, we use variable sizes of integers to store the sequence elements. The MSbits of every integer in the compressed sequence correspond to its size: if the MSbit is `0`, it's a 23-bit integer stored in 3 bytes; if the MSbit is `1` then it's a 14-bit integer stored in 2 bytes (if the 2nd MSbit is `0`), or a 30-bit integer stores in 4 bytes (if 2nd MSbit is `1`).<br> Huffman coding adds some complexity to the decoding process, but this alone results in a **25 %** reduction in the size of the integer sequence.
+
+<h3>String Compression</h3>
+Apart from integer compression, we also use string compression for on-disk storage.
+
+To test the feasibility of our design, a prototype in was first implemented in `python`. The analysis of different compression techniques used is given in the following column.
+
 <h2>Optimizations Log</h2>
 Integer Compression:
-	Pre-Huffman delta encoding compressed size (Full file): 429,505,425 bytes
-	Post-Huffman delta encoding compressed size (Full File): 426,076,260 bytes
+	Pre-Huffman & delta encoding compressed size (Full file): 429,505,425 bytes
+	Post-Huffman & delta encoding compressed size (Full File): 426,076,260 bytes
 	
 	Post-Huffman delta encoding compressed size (Full File | Idx only): 419,808,734 bytes
 
