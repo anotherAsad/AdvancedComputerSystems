@@ -10,7 +10,7 @@ The project also makes use of multi-threading and SIMD to speed up encoding and 
 
 <h2>Design Strategies & Techniques Used</h2>
 
-keywords: `N-ary tree`, `prefix search`, `prototyping and analysis`, `Delta encoding`
+keywords: `N-ary tree`, `prefix search`, `prototyping and analysis`, `Delta encoding`, `Huffman coding`
 
 
 Considering that our target is to compress a low-cardinality column, with lots of elements that are either repeated or share a common prefix, a **tree-like** structure seems a natural choice. As opposed to hashes, trees have the added advantage of eleminating repetitions due to common prefix, and enabling natural prefix scans.<br>
@@ -28,13 +28,15 @@ To illustrate, words "carmen" and "carpet" would be represented with 9 nodes in 
 
 For on-disk storage, we combined two integer compression techniques:
 
-1. **Delta compression**: Except for the first element, each element $c_i$ in the compressed integer sequence is expressed as the difference of the elements $a_i$ and $a_i-1$ in the original list. The first element of both the compressed and the original list is the same. Delta compression works well when the jumps between integers of a sequence are smaller than their absolute values.
+1. **Delta compression**: Except for the first element, each element $c_i$ in the compressed integer sequence is expressed as the difference of the elements $a_i$ and $a_i-1$ in the original list. The first element of both the compressed and the original list is the same. Delta compression works well when the jumps between integers of a sequence are smaller than their absolute values, which could further aid the quality of compression by huffman coding.
 2. **Huffman coding**: The original sequence stores integers in 32-bit unsigned format. With Huffman encoding enabled, we use variable sizes of integers to store the sequence elements. The MSbits of every integer in the compressed sequence correspond to its size: if the MSbit is `0`, it's a 23-bit integer stored in 3 bytes; if the MSbit is `1` then it's a 14-bit integer stored in 2 bytes (if the 2nd MSbit is `0`), or a 30-bit integer stores in 4 bytes (if 2nd MSbit is `1`).<br> Huffman coding adds some complexity to the decoding process, but this alone results in a **25 %** reduction in the size of the integer sequence.
 
 <h3>String Compression</h3>
-Apart from integer compression, we also use string compression for on-disk storage.
+Apart from integer compression, we also use a variant of delta coding for string compression of the on-disk compressed file. Here, every word is represented in terms of its difference from the previous word: only the different part of the later word is store. A single character denoting the length of the difference is also stored in this technique.<br>To illustrate, let's say we save "carmen" and "carpet". In storage, they would look like: "carmen<3>pet", where <3> denotes that the last three characters of "carmen" have to be discarded, and the string "pet" has to be added to get the new word "carpet". This techniques is quite useful when we store the data in alphabetical order (which is naturally done if we traverse our tree in depth first order).
 
-To test the feasibility of our design, a prototype in was first implemented in `python`. The analysis of different compression techniques used is given in the following column.
+To test the feasibility of our design decisions, a prototype in was first implemented in `python`. The analysis of different compression techniques used is given in the following section.
+
+<h2>Prototype Analysis</h3>
 
 <h2>Optimizations Log</h2>
 Integer Compression:
