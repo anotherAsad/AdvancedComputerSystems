@@ -127,6 +127,8 @@ During the encode operation, we create multiple queues. At any given time, one o
 
 In addition to this, every node in a tree also supports a `mutex` for `atomicity` of access. This way, no two threads access a single node at once, and the shared data does not get corrupted.
 
+The advantage of multi-threading will be shown in the results section.
+
 <h3>SIMD support for search/scan</h3>
 
 The tree itself is not amicable to SIMD implementation of lookup. However, the in memory compressed stream can be searched very quickly using SIMD instructions.
@@ -158,17 +160,75 @@ bool compare_four_simd(std::vector<std::string> &str_vec, std::string comp_str, 
 }
 ```
 
-The results of `compare_four_simd` can then be scanned in detail if any of the string matches.
+The results of `compare_four_simd` can then be scanned in detail if any of the string matches. The advantage of using SIMD will be shown in the following section.
 
 <h2>Results</h2>
 
-_Table of statistics for read-vs-write ratio of 100:0_
+The following results were compiled on a machine based on an 8th generation intel processor with 4 cores and 8 threads. The machine has 8 GigaBytes of RAM.
 
-![graph](./Table_RW_0_100.PNG)
+<h3>I- Encoding performance under different number of threads</h3> 
 
+The following table compares the encoding performance under different number of threads:
+![graph](./thread_compare.PNG)
+
+As can be observed, increasing the number of cores drastically reduces the total encoding time. A very minute amount of speed-up is lost due to `mutexes`, that block a thread if it accesses a node already under access by another thread. But the sheer number of nodes reduces the probability of this occurring very often.
+
+The output of the program after encoding looks as follows:
+
+_Encoding results on 4 threads:_
+![graph](./encode_4_core.PNG)
+
+<h3>II- Single data item search</h3> 
+
+To perform all these experiments, we randomly query a large number of elements, and consume their results without printing.
+
+First, we need to establish a baseline:
+![graph](./baseline.PNG)
+
+So the baseline design takes an average of 111.2 milliseconds to perform a single query.
+
+The program supports 2 flavors of item search:
+1. Tree search.
+2. Compressed sequence search.
+
+The tree search has a time complexity of $O\(log\(N\)\)$, while the compressed sequence search has a complexity of $O(N)$.
+
+The following snapshot shows the tree single item search and prefix scan results (Tree search does not support SIMD):
+
+![graph](./Lookup_prefetch_results.PNG)
+
+The following snapshot shows the compressed sequence single item search and prefix scan results (with and without SIMD):
+
+![graph](./SIMD_search_scan.PNG)
+
+Following is a chart of comparisons that summarizes these results.
+![graph](./tableI.PNG)
+
+<h3>III- Prefix scan</h3> 
+
+As with search, this program supports 2 flavors of prefix scan:
+1. Tree search.
+2. Compressed sequence search.
+
+Search and prefix scan times are similar, because **_(a)_** for the tree structure, the scan operation only performs an additional traversal of the final node, and **_(b)_** Compressed sequences are stored in alphabetical order, resulting in very similar search and scan times.
+Albeit, the tree scan operation shows a greater overhead over the tree search because a subnode has to be scanned.
+
+Following is a sample output of search and prefix scan operations:
+![graph](./prefix_scan_and_search_example.PNG)
+
+Following is a table that summarizes the preformance of various scan methods, averaged over large numbers of queries.
+![graph](./tableII.PNG)
+
+<h3>On-disk Size Comparison</h3>
+As discussed before, the integer compression allows us to further compress the column from **541 MB** to **406 MB**, before saving that into permanent storage.
+
+Following is the screenshot that displays this result.
+![graph](./on_disk.PNG)
 
 <h2>Conclusion</h2>
 
-1. ksjbdfskad
-2. dkspoad
-3. ofjsdkfmd
+Following are some salient observations and lessons from the implementation of this project:
+
+1. 
+
+
