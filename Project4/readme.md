@@ -13,16 +13,16 @@ The project also makes use of multi-threading and SIMD to speed up encoding and 
 keywords: `N-ary tree`, `prefix`, `prototyping and analysis`, `Delta encoding`, `Huffman coding`
 
 
-Considering that our target is to compress a low-cardinality column, with lots of elements that are either repeated or share a common prefix, a **tree-like** structure seems a natural choice. As opposed to hashes, trees have the added advantage of eleminating repetitions due to common prefix, and enabling natural prefix scans.<br>
+Considering that our target is to compress a low-cardinality column, with lots of elements that are either repeated or share a common prefix, a **tree-like** structure seems a natural choice. As opposed to hashes, trees have the added advantage of eliminating repetitions due to common prefix, and enabling natural prefix scans.<br>
 
-For simplicity, we have used a data-structure that extends an N-ary tree. This datastructure can be used for encoding, element search, prefix scan, and can be modularly extended to enable writing of the compressed column to disk, or a separate data structure.<br>
+For simplicity, we have used a data-structure that extends an N-ary tree. This data-structure can be used for encoding, element search, prefix scan, and can be modularly extended to enable writing of the compressed column to disk, or a separate data structure.<br>
 
 <h3>Data Representation in the N-ary Tree</h3>
 
 In our data structure, every word is stored character-wise in the tree nodes. Every node in the tree stores a character, and has a set of pointers pointing to the next character of the word.<br>
 If the node is terminal (i.e., represents the last character in a string), it also stores a dynamic list of indices where the string appears in the uncompressed column. This way, repeating words are only represented once (with their different indices stored in a leaf node representing the last character). Words with common prefixes diverge at the first different character, and hence are also represented with as little repetition as possible.
 
-To illustrate, words "carmen" and "carpet" would be represented with 9 nodes in total, with the common prefix "car" saved only once. The node representing "r" would have two pointers - to "m" and "p" - for the non-simmilar parts of the words.
+To illustrate, words "carmen" and "carpet" would be represented with 9 nodes in total, with the common prefix "car" saved only once. The node representing "r" would have two pointers - to "m" and "p" - for the non-similar parts of the words.
 
 This type of representation is especially amicable to the operation of prefix search, as will be seen later.
 
@@ -35,7 +35,7 @@ For on-disk storage, we combined two integer compression techniques:
 2. **Huffman coding**: The original sequence stores integers in 32-bit unsigned format. With Huffman encoding enabled, we use variable sizes of integers to store the sequence elements. The MSbits of every integer in the compressed sequence correspond to its size: if the MSbit is `0`, it's a 23-bit integer stored in 3 bytes; if the MSbit is `1` then it's a 14-bit integer stored in 2 bytes (if the 2nd MSbit is `0`), or a 30-bit integer stores in 4 bytes (if 2nd MSbit is `1`).<br> Huffman coding adds some complexity to the decoding process, but this alone results in a **25 %** reduction in the size of the integer sequence.
 
 <h3>String Compression</h3>
-Apart from integer compression, we also use a variant of delta coding for string compression of the on-disk compressed file. Here, every word is represented in terms of its difference from the previous word: only the different part of the later word is store. A single character denoting the length of the difference is also stored in this technique.
+Apart from integer compression, we also use a variant of delta coding for string compression of the on-disk compressed file. Here, every word is represented in terms of its difference from the previous word: only the different part of the later word is stored. A single character denoting the length of the difference is also stored in this technique.
 
 To illustrate, let's say we save "carmen" and "carpet". In storage, they would look like: "carmen<3>pet", where <3> denotes that the last three characters of "carmen" have to be discarded, and the string "pet" has to be added to get the new word "carpet". This techniques is quite useful when we store the data in alphabetical order (which is naturally done if we traverse our tree in depth first order).<br>
 
@@ -71,7 +71,7 @@ Post-compression size ratios:
 32-bit Ints: ~ 0.22%
 ```
 
-This corresponds to an average of 2.975 bytes per integer in compressed stream, which should compress the all the integers by around 25%.
+This corresponds to an average of 2.975 bytes per integer in the compressed stream. This means all the integers in the compressed stream can be further compressed by 25%.
 
 Experimentally we see:
 ```
@@ -107,7 +107,7 @@ The code is split into multiple classes and files for modularity. It is primaril
 
 <h3>Method Overview</h3>
 
-The `addElement` method simply adds an element to the node, making a new node sequence if the element has not appeared before, or coalescing it with prior nodes if the element has appeared before. It naturally forks-off at the apropriate point if the element being added is unique, but shares a prefix (of any length) with prior elements.
+The `addElement` method simply adds an element to the node, making a new node sequence if the element has not appeared before, or coalescing it with prior nodes if the element has appeared before. It naturally forks-off at the appropriate point if the element being added is unique, but shares a prefix (of any length) with prior elements.
 
 The `lookup` method searches the tree for a given sequence of characters, and returns a node that represents the last character of the sequence. This returned node can then be used for both **prefix scan** and **single element search**. For **single element search**, we simply list the vector of indices stored in the returned node. For **prefix scan**, we recursively `traverse` the children of the returned node, and list the vector of indices, along with the post-fix, for any terminal nodes.
 
@@ -169,21 +169,21 @@ The following results were compiled on a machine based on an 8th generation inte
 <h3>I- Encoding performance under different number of threads</h3> 
 
 The following table compares the encoding performance under different number of threads:
-![graph](./thread_compare.PNG)
+![graph](./Results/thread_compare.PNG)
 
 As can be observed, increasing the number of cores drastically reduces the total encoding time. A very minute amount of speed-up is lost due to `mutexes`, that block a thread if it accesses a node already under access by another thread. But the sheer number of nodes reduces the probability of this occurring very often.
 
 The output of the program after encoding looks as follows:
 
 _Encoding results on 4 threads:_
-![graph](./encode_4_core.PNG)
+![graph](./Results/encode_4_core.PNG)
 
 <h3>II- Single data item search</h3> 
 
 To perform all these experiments, we randomly query a large number of elements, and consume their results without printing.
 
 First, we need to establish a baseline:
-![graph](./baseline.PNG)
+![graph](./Results/baseline.PNG)
 
 So the baseline design takes an average of 111.2 milliseconds to perform a single query.
 
@@ -195,14 +195,14 @@ The tree search has a time complexity of $O\(log\(N\)\)$, while the compressed s
 
 The following snapshot shows the tree single item search and prefix scan results (Tree search does not support SIMD):
 
-![graph](./Lookup_prefetch_results.PNG)
+![graph](./Results/Lookup_prefetch_results.PNG)
 
 The following snapshot shows the compressed sequence single item search and prefix scan results (with and without SIMD):
 
-![graph](./SIMD_search_scan.PNG)
+![graph](./Results/SIMD_search_scan.PNG)
 
 Following is a chart of comparisons that summarizes these results.
-![graph](./tableI.PNG)
+![graph](./Results/tableI.PNG)
 
 <h3>III- Prefix scan</h3> 
 
@@ -214,21 +214,27 @@ Search and prefix scan times are similar, because **_(a)_** for the tree structu
 Albeit, the tree scan operation shows a greater overhead over the tree search because a subnode has to be scanned.
 
 Following is a sample output of search and prefix scan operations:
-![graph](./prefix_scan_and_search_example.PNG)
+![graph](./Results/prefix_scan_and_search_example.PNG)
 
-Following is a table that summarizes the preformance of various scan methods, averaged over large numbers of queries.
-![graph](./tableII.PNG)
+Following is a table that summarizes the performance of various scan methods, averaged over large numbers of queries.
+![graph](./Results/tableII.PNG)
 
 <h3>On-disk Size Comparison</h3>
 As discussed before, the integer compression allows us to further compress the column from **541 MB** to **406 MB**, before saving that into permanent storage.
 
 Following is the screenshot that displays this result.
-![graph](./on_disk.PNG)
+![graph](./Results/on_disk.PNG)
+
+As can be seen, our compression beats the RAR output from WinRAR. The WinRAR contemporary is a result of compression option set to "best", and with a dictionary size of 64 MB.
 
 <h2>Conclusion</h2>
 
 Following are some salient observations and lessons from the implementation of this project:
 
-1. 
-
-
+1. For large scale projects, the neat abstractions provided by C++ are a nice welcome. Features like `std::map`, `std::vector` and classes would be a separate project if the implementation was to be done in C.
+2. The ideal compression method is the one that aligns well with the data at hand. For instance, this column had very low cardinality (around 1:140), which means that the challenge is not to compress the unique text, but the references to (or indices of) the unique text. This is why Huffman encoding for integers works so well, and string compression has barely no effect at all.
+3. Additionally, since the repetitions of a same entry are far apart, the delta compression does not offer us much advantag, i.e., turning the delta compression on and off does not have much benefit. 
+4. Increasing the size of the dictionary will not always improve compression. For example, in our case, a dictionary size of 8 MB is sufficient due to low-cardinality/high repetition of data.
+5. Owing to the complexity of the project, there are many more optimizations that can still be had. One of them is bit-level compression, where we can store characters in 5 bits instead of 8 (that is because we only have 26 different characters to contend with). However, such optimizations are overkill because, as stated in point two, out **compression bottleneck** after repetition is the large number of integers.
+6. As with all things, the choice of compression algorithm is a trade-off. For instance, the Huffman coding, while very benificial, is time-taking to decode in decompressing phase. This is why we would not want to implement it for main-memory storage.
+7. Lastly, Multi-threading can be a real challenge to implement if there is data to be shared by threads. So, the programmer should not only opt for air-tight atomicity, but also pre-plan to design the program with a solid inter-thread communication and data sharing interface. In our case, the instantiating multiple FIFO's greatly helped with a simple multi-threaded implementation. 
