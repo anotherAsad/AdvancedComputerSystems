@@ -94,130 +94,81 @@ Delta Encoding Advantage: 6,267,526/7,806,184 = 80.2%
 
 Post-Huffman & delta encoding compressed size (Full File): 426,076,260 bytes = ~406 MB
 
-Which is $406 MB/1069 MB$ i.e. only $38\%$ of the original file size.
+Which is $406 MB/1069 MB$ i.e. only $38\%$ % of the original file size.
 
 <h3>Conclusion</h3>
 
 As discussed, eliminating repetitions accounts for around 50% reduction. Compounding over that, integer compression can reduce the size by an additional **25%**. However, string delta compression only saves us around **1.5 MB**, which amounts to almost nothing in the grand scheme of things. So the in-memory size is around **534 MB**, and on-disk size is **406 MB**.
 
 <h2>Code Overview</h2>
-keywords: `tree node`, `fast lookup`, `multi-threading for encoding`, `SIMD support for lookup`
+keywords: `tree node`, `fast lookup`, `multi-threading for encoding`, `multi-FIFO scheduler`, `mutex`, `SIMD support for lookup`
 
-The code is primarily centered around a C++ class called `treenode`, which represents a single tree node. The class has methods like `addElement` and `lookup`.
+The code is split into multiple classes and files for modularity. It is primarily centered around a C++ class called `treenode`, which represents a single tree node. The class has methods like `addElement` and `lookup`.
+
+<h3>Method Overview</h3>
 
 The `addElement` method simply adds an element to the node, making a new node sequence if the element has not appeared before, or coalescing it with prior nodes if the element has appeared before. It naturally forks-off at the apropriate point if the element being added is unique, but shares a prefix (of any length) with prior elements.
 
-The `lookup` method searches the tree for a given sequence of characters, and returns a node that represents the last character of the sequence. This returned node can then be used for both **prefix scan** and **single element search**. For **single element search**, we simply 
+The `lookup` method searches the tree for a given sequence of characters, and returns a node that represents the last character of the sequence. This returned node can then be used for both **prefix scan** and **single element search**. For **single element search**, we simply list the vector of indices stored in the returned node. For **prefix scan**, we recursively `traverse` the children of the returned node, and list the vector of indices, along with the post-fix, for any terminal nodes.
 
-<h2>1. Experimental Setup</h2>
+The `traverse` method can additionally be used to:
+- **_(a)_** traverse the entire tree (or a subtree) and store the output in memory.
+- **_(b)_** traverse the entire tree (or a subtree) and integer/string compress the results for on-disk storage.
+- **_(c)_** store the entire tree (or a subtree) into another, less memory consuming data structure.
 
-keywords: `fio job description file`, `python scripts`, `JSON output`
+<h3>Multi-threading support for encoding</h3>
 
-<h4>SSD under test:</h4>
-Toshiba KXG60ZNV256G - 256 GB NVMe SSD.<br>
-512 MB seperate drive created for all fio experiments.
+Supporting multi-threading for encoding is an interesting challenge. A naive approach would have us split the uncompressed stream of data in multiple units for parallel encoding. However, we also need the index of the element being added. If we split the streams, we can not know the index numbers of their elements unless we scan them. Scanning is a slow, sequential operation which then must be done on the entire file with one thread. This way, the time consumed in splitting the streams for parallelization could very well cause us to lose all the advantage of multi-threading.
 
-<h4>fio job description file:</h4>
+Therefore, we use a **ping-pong** like, or a **multi-FIFO scheduling data-structure**, as shown below:
+![graph](./FIFOs.png)
 
-The **fio** command-line utility can take a job description file as input. The job description file contains the params for the IO job to be carried out. Contents of the job description file used in this project are given below, We use this file to pass common parameters for all out tests:
+During the encode operation, we create multiple queues. At any given time, one of these queues is being filled by the main thread, while all the others are being read by multiple threads for encoding. Each queue has its own `mutex`. Every threads iterates over queue indices to **acquire** a `mutex lock`. If a thread fails to acquire the lock, it attempts the same on another queue. If a thread succeeds, it reads or writes to the FIFO, and unlocks the `mutex` before leaving. This method ensures almost perfect utilization of the available threads without fear of race conditions.
 
+In addition to this, every node in a tree also supports a `mutex` for `atomicity` of access. This way, no two threads access a single node at once, and the shared data does not get corrupted.
+
+<h3>SIMD support for search/scan</h3>
+
+The tree itself is not amicable to SIMD implementation of lookup. However, the in memory compressed stream can be searched very quickly using SIMD instructions.
+
+For search and scan operations we use SIMD instructions from AVX 2. The strategy here is to compare 4 strings of 8 characters at once with a given string. If any of the strings matches, we go on to perform a detailed scan and find the exact string that matched (or even if the match passes beyond 8 characters). To that end, a function called `compare_four_simd` was written which uses an AVX2 kernel for search acceleration.
+
+The function is given below:
+
+```C++
+bool compare_four_simd(std::vector<std::string> &str_vec, std::string comp_str, int base_idx) {
+	int match_mask;
+	char retval = 0;
+
+	// make a sortie of 4 strings of 8 character
+	__m256i compare_sortie = _mm256_set_epi64x(
+		*(long long *) &str_vec[base_idx+0][0],
+		*(long long *) &str_vec[base_idx+1][0],
+		*(long long *) &str_vec[base_idx+2][0],
+		*(long long *) &str_vec[base_idx+3][0]
+	);
+
+	__m256i base_sortie = _mm256_broadcastq_epi64(*(__m128i *) &comp_str[0]);		// copy the 8 bytes to all 4 strings
+	__m256i cmp_res = _mm256_cmpeq_epi8(compare_sortie, base_sortie);				// compare in parallel
+	match_mask = _mm256_movemask_epi8(cmp_res);										// condense to bit info per character
+	match_mask = (char) _mm256_movemask_epi8(*(__m256i *) &match_mask);				// condense to bit info per string
+
+	// if any of the bits of the lowest byte are 1, we have a string match.
+	return (match_mask != 0);
+}
 ```
-; -- start job file --
-[Job1]
-ioengine=libaio             ; use the standard linux async IO library
-;iodepth=32                 ; Target queue depth to be maintained. Impacts bandwidth. 
-;bs=4k                      ; Block size is the unit of IO to be read or written, i.e., the data access size.
-numjobs=1                   ; Number of identical processes to be spawned for each job.  
-direct=1                    ; Avoid kernel caching for disk IOs.
-fsync=0                     ; Do not issue fsync after every access. Setting it to 1 drastically diminishes IOPS and BW.
-filename=/dev/nvme0n1p5     ; Name of the target drive for test
-rw=randrw	                ; Type of access pattern. Can be randwrite, randread, randrw and all their sequential counterparts
-size=512m                   ; Size of the test reqion. Number of IOs = size/bs.
-; -- end job file --
-```
 
-<h4>Command Format:</h4>
+The results of `compare_four_simd` can then be scanned in detail if any of the string matches.
 
-A bash command that invokes the fio utility is given below. All flags passed are used for parameters that change across tests.
-
-```bash
-sudo fio --output-format=json --output=../out_dir/outfile.json --bs=4k --iodepth=8 --rwmixread=50 jobfile.fio
-
-# Flag Description:
-# --output-format=json  |   Save output in JSON format. As opposed to simle text, JSON format can be easily parsed at result collection stage.
-# --bs=4k               |   Data access size for a single IO is 4K. Overrides the option in jobfile.fio
-# --iodepth=8           |   Target queue depth is 8
-# --rwmixread=50        |   Percentage of reads in total IOs
-# jobfile.fio           |   Job description file used.
-```
-
-<h3>Stats Collection Overview</h3>
-
-The assignment calls for measuring the stats for various combinations of workloads. In order to efficiently collect these stats we use a few python scripts:
-
-1. We use `command_iterator.py` to iterate of **data access sizes**, **target queue lengths** and **read/write ratios**, and issue fio commands that write their results to the `out_dir` directory. For ease of parsing, the outputs are in `JSON` format.
-2. We use `json_processor.py` to parse the results and extract **bandwidth**, **IOPS** and **latency** stats for different workload combinations. The extracted results are written to a **CSV file** for tabulation and graphing of results.
-
-<h2>Results & Analyses</h2>
-
-This section summarizes with the results of the **fio** experiments extracted via `json_processor.py`. The results are categorized according to read-write ratios.
-
-<h3> Case I: Results for R/W Ratio of 100:0</h3>
+<h2>Results</h2>
 
 _Table of statistics for read-vs-write ratio of 100:0_
-![graph](./Table_RW_100_0.PNG)
 
-- The relationship between IOPS and throughput (called bandwidth in context of **fio**) agrees with the theory, i.e., $Bandwidth = IOPS * SizeOfDataAccess$.
-- [*] Increase in queue length corresponds with increase in bandwidth (and also IOPS) along with latency. This is in line with the queuing theory: Higher queue length means better server utilization, which allows the queue server to achieve a higher fraction of maximum bandwidth. However, it also increases latency due to queue width $T_q$.
-- Larger data access sizes result in higher bandwidth, however the increase in bandwidth is usually not proportional to the increase in data access size. This is because larger data access sizes put a strain on the interconnect, as there is more data to be moved around. So in this case, the interconnect bandwidth at the junction of the NVMe interface, and the device, becomes the bottleneck.<br> To illustrate, if we have infinite interconnect or external bandwidth, doubling data access size should double bandwidth because the IOPS would remain the same (up until the access size is less than NAND page size). But in the case of limited external bandwidth, IOPS actually go down with increase in data access size, which results in a less-than-proportional increase in the bandwidth.
-
-<h3> Case II: Results for R/W Ratio of 0:100</h3>
-
-_Table of statistics for read-vs-write ratio of 0:100_
 ![graph](./Table_RW_0_100.PNG)
 
-- As opposed to the case of 100% reads, the case of 100% writes is surprisingly faster for lower queue sizes and lower data access sizes. This seemed an odd result at first, but I have verified it against [online benchmarks](https://ssd.userbenchmark.com/SpeedTest/358656/KXG50ZNV256G-NVMe-TOSHIBA-256GB).<br>There is a good explanation for this behavior, though. We know that, at the level of a NAND flash die, the write operation is very expensive: all writes must erase a whole block and re-write it again. However, to cirvumvent this issue, SSDs usually have large write buffers, which accumulate writes before flushing. And since a write is only uni-directional from the perspective of the rest of the system, write-bandwidth can actually appear faster than read-bandwidth for small access sizes. For larger access sizes, the read-bandwidth starts to win again, since the afore-mentioned write buffer gets filled more often.
-- All the other observations are along the lines of Case I.
-
-<h3> Case III: Results for R/W Ratio of 50:50</h3>
-
-_Table of statistics for read-vs-write ratio of 50:50_
-![graph](./Table_RW_50_50.PNG)
-
-- The case of 50% reads and 50% writes performs noticeably than both the 100% cases above.
-- All other observations from Case I still apply.
-
-<h3> Case IV: Results for R/W Ratio of 70:30</h3>
-
-_Table of statistics for read-vs-write ratio of 70:30_
-![graph](./Table_RW_70_30.PNG)
-
-- This case is very similar to Case III, especially for deeper queue sizes.
-- All other observations from Case I still apply.
-
-<h2>Observations</h2>
-
-From the above experiments and there results, we can make a few salient observations:
-
-1. Increasing queue length increases server utilization $µ$, which makes higher throughput possible. So the relationship between throughput and latency is also seen here. The two graphs below illustrate this.
-
-_Bandwidth vs. Latency:_
-![graph](./Bandwidth_vs_Latency.png)
-
-_Queue Length vs. Latency:_
-![graph](./Queue_Length_vs_Latency.png)
-
-
-2. For smaller data access sizes, increasing queue length tends to increase IOPS (at least for some steps). But for larger data access sizes, IOPS do not change much with the queue length. This is explainable, since larger data access sizes tend to saturate the external bandwidth pretty quickly, limiting the IOPS to the external bandwidth.<br> This explains why IOPS are used by SSD vendors to demonstrate throughput for small data access sizes: It shows how fast the internal NAND architecture can be in the best of cases. However, since the external bandwidth becomes the limiting factor for bigger data access sizes, it is practical to report the maximum possible data transfer rate in MB/sec for large data access sizes.<br><br>This relationship is explored in the following graph which plots queue length against IOPS (for the case of 100% writes). As can be seen, IOPS stay constant across multiple queue lengths for the data access size of 128K, pointing to a transfer bandwidth saturation. 
-
-![graph](./Queue_Length_vs_IOPS.png)
 
 <h2>Conclusion</h2>
-From this project, the trade-off between throughput and latency is reinforced again. We also see the significance of data-access size and queue-length in SSD performance, and the reasons why they could influence throughput. We also see that, although the individual physical read/write operations are very slow inside an SSD, the practice of parallelising elements inside an SSD allows for such high theoretical bandwidths that it may even be limited by the external bandwidth.
 
-<h3>Why Intel D7-P5600 has 130k IOPS for random write-only 4KB case?</h3>
-
-Since we could not find the exact queue depth for these tests, we assume QD32 or greater for comparison. In that case, our SSD demonstrates around 360K IOPS for random 4KB writes, that is, almost 3 times faster that P5600. Our SSD could beat the $7000 industrial grade SSD for 4KB random writes for the following reasons:
-
-1. The P5600 rarely has to deal with data access sizes of 4KB, that is why it is not optimized for small data access sizes.
-2. For higher reliability, the industrial SSD might use more aggressive error correction coding and fault-handling techniques. This may be the reason for low write IOPS.
+1. ksjbdfskad
+2. dkspoad
+3. ofjsdkfmd
