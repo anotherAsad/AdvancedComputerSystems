@@ -220,6 +220,7 @@ Following is a table that summarizes the performance of various scan methods, av
 ![graph](./Results/tableII.PNG)
 
 <h3>On-disk Size Comparison</h3>
+
 As discussed before, the integer compression allows us to further compress the column from **541 MB** to **406 MB**, before saving that into permanent storage.
 
 Following is the screenshot that displays this result.
