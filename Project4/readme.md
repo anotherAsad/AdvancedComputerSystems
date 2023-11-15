@@ -121,7 +121,7 @@ The `traverse` method can additionally be used to:
 Supporting multi-threading for encoding is an interesting challenge. A naive approach would have us split the uncompressed stream of data in multiple units for parallel encoding. However, we also need the index of the element being added. If we split the streams, we can not know the index numbers of their elements unless we scan them. Scanning is a slow, sequential operation which then must be done on the entire file with one thread. This way, the time consumed in splitting the streams for parallelization could very well cause us to lose all the advantage of multi-threading.
 
 Therefore, we use a **ping-pong** like, or a **multi-FIFO scheduling data-structure**, as shown below:
-![graph](./FIFOs.png)
+![graph](./Results/FIFOs.png)
 
 During the encode operation, we create multiple queues. At any given time, one of these queues is being filled by the main thread, while all the others are being read by multiple threads for encoding. Each queue has its own `mutex`. Every threads iterates over queue indices to **acquire** a `mutex lock`. If a thread fails to acquire the lock, it attempts the same on another queue. If a thread succeeds, it reads or writes to the FIFO, and unlocks the `mutex` before leaving. This method ensures almost perfect utilization of the available threads without fear of race conditions.
 
