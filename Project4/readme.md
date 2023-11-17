@@ -42,6 +42,7 @@ To illustrate, let's say we save "carmen" and "carpet". In storage, they would l
 To test the feasibility of our design decisions, a prototype was first implemented in `python`. The analysis of different compression techniques used is given in the following section.
 
 <h2>Analysis of compression techniques</h2>
+
 keywords: `Integer compression`, `string compression`, `delta coding for strings`, `on-disk compressed storage`
 
 A preliminary analysis of the compression techniques for the given column file was performed. The results, aided by an implementation of the tree structure in `python`, are given below.
@@ -101,6 +102,7 @@ Which is $406 MB/1069 MB$ i.e. only $38\%$ % of the original file size.
 As discussed, eliminating repetitions accounts for around 50% reduction. Compounding over that, integer compression can reduce the size by an additional **25%**. However, string delta compression only saves us around **1.5 MB**, which amounts to almost nothing in the grand scheme of things. So the in-memory size is around **534 MB**, and on-disk size is **406 MB**.
 
 <h2>Code Overview</h2>
+
 keywords: `tree node`, `fast lookup`, `multi-threading for encoding`, `multi-FIFO scheduler`, `mutex`, `SIMD support for lookup`
 
 The code is split into multiple classes and files for modularity. It is primarily centered around a C++ class called `treenode`, which represents a single tree node. The class has methods like `addElement` and `lookup`.
@@ -233,9 +235,9 @@ As can be seen, our compression beats the RAR output from WinRAR. The WinRAR con
 Following are some salient observations and lessons from the implementation of this project:
 
 1. For large scale projects, the neat abstractions provided by C++ are a nice welcome. Features like `std::map`, `std::vector` and classes would be a separate project if the implementation was to be done in C.
-2. The ideal compression method is the one that aligns well with the data at hand. For instance, this column had very low cardinality (around 1:140), which means that the challenge is not to compress the unique text, but the references to (or indices of) the unique text. This is why Huffman encoding for integers works so well, and string compression has barely no effect at all.
+2. The ideal compression method is the one that aligns well with the data at hand. For instance, this column had very low cardinality (around 1:140), which means that the challenge is not to compress the unique text, but the references to (i.e., indices of) the unique text. This is why Huffman encoding for integers works so well, and string compression has barely no effect at all.
 3. Additionally, since the repetitions of a same entry are far apart, the delta compression does not offer us much advantag, i.e., turning the delta compression on and off does not have much benefit. 
 4. Increasing the size of the dictionary will not always improve compression. For example, in our case, a dictionary size of 8 MB is sufficient due to low-cardinality/high repetition of data.
 5. Owing to the complexity of the project, there are many more optimizations that can still be had. One of them is bit-level compression, where we can store characters in 5 bits instead of 8 (that is because we only have 26 different characters to contend with). However, such optimizations are overkill because, as stated in point two, out **compression bottleneck** after repetition is the large number of integers.
 6. As with all things, the choice of compression algorithm is a trade-off. For instance, the Huffman coding, while very benificial, is time-taking to decode in decompressing phase. This is why we would not want to implement it for main-memory storage.
-7. Lastly, Multi-threading can be a real challenge to implement if there is data to be shared by threads. So, the programmer should not only opt for air-tight atomicity, but also pre-plan to design the program with a solid inter-thread communication and data sharing interface. In our case, the instantiating multiple FIFO's greatly helped with a simple multi-threaded implementation. 
+7. Lastly, Multi-threading can be a real challenge to implement if there is data to be shared by threads. So, the programmer should not only opt for air-tight atomicity, but also pre-plan to design the program with a solid inter-thread communication and data sharing interface. In our case, instantiating multiple FIFO's greatly helped with a simple multi-threaded implementation. 
